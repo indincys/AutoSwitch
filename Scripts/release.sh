@@ -49,11 +49,15 @@ Usage:
 
 Required environment variables for a real release:
   AUTOSWITCH_SIGNING_IDENTITY   Code signing certificate common name
-  AUTOSWITCH_ED_PRIVATE_KEY     Path to Sparkle EdDSA private key file
   AUTOSWITCH_REPO               GitHub repo in owner/name form
   AUTOSWITCH_RELEASE_TAG        Release tag, e.g. v0.1.0
   AUTOSWITCH_RELEASE_NOTES_URL  Release notes URL
   AUTOSWITCH_FEED_URL           Appcast URL
+
+Optional:
+  AUTOSWITCH_ED_PRIVATE_KEY     Path to Sparkle EdDSA private key file. If
+                                unset, sign_update reads the key from the
+                                macOS Keychain (default account).
 EOF
 }
 
@@ -76,7 +80,6 @@ done
 
 if [[ "$DRY_RUN" -eq 0 ]]; then
   require_env AUTOSWITCH_SIGNING_IDENTITY
-  require_env AUTOSWITCH_ED_PRIVATE_KEY
   require_env AUTOSWITCH_REPO
   require_env AUTOSWITCH_RELEASE_TAG
   require_env AUTOSWITCH_RELEASE_NOTES_URL
@@ -140,12 +143,15 @@ codesign --force --deep --entitlements "$ENTITLEMENTS_FILE" --sign "$AUTOSWITCH_
 rm -f "$ARCHIVE_ZIP"
 /usr/bin/ditto -c -k --keepParent "$APP_BUNDLE" "$ARCHIVE_ZIP"
 
-if [[ ! -f "$AUTOSWITCH_ED_PRIVATE_KEY" ]]; then
-  echo "Sparkle private key not found: $AUTOSWITCH_ED_PRIVATE_KEY" >&2
-  exit 1
+if [[ -n "${AUTOSWITCH_ED_PRIVATE_KEY:-}" ]]; then
+  if [[ ! -f "$AUTOSWITCH_ED_PRIVATE_KEY" ]]; then
+    echo "Sparkle private key not found: $AUTOSWITCH_ED_PRIVATE_KEY" >&2
+    exit 1
+  fi
+  SIGNATURE="$("$SIGN_UPDATE" --ed-key-file "$AUTOSWITCH_ED_PRIVATE_KEY" -p "$ARCHIVE_ZIP")"
+else
+  SIGNATURE="$("$SIGN_UPDATE" -p "$ARCHIVE_ZIP")"
 fi
-
-SIGNATURE="$("$SIGN_UPDATE" --ed-key-file "$AUTOSWITCH_ED_PRIVATE_KEY" -p "$ARCHIVE_ZIP")"
 APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_BUNDLE/Contents/Info.plist")"
 SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_BUNDLE/Contents/Info.plist")"
 ARCHIVE_SIZE="$(stat -f%z "$ARCHIVE_ZIP")"

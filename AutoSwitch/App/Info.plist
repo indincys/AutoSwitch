@@ -33,8 +33,8 @@
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://example.com/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/indincys/AutoSwitch/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
-	<string>REPLACE_ME_PUBLIC_ED_KEY</string>
+	<string>nkAdYJH7Bm5kPMT3OiyJW8fyEnFwtNIt/kyBq/0gVmo=</string>
 </dict>
 </plist>
