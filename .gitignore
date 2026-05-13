@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Xcode build artifacts
+Build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Agent / tool state
+.claude/
+.codex/

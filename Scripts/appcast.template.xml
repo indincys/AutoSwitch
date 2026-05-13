@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AutoSwitch Updates</title>
+    <link>{{FEED_URL}}</link>
+    <description>AutoSwitch release feed</description>
+    <language>en</language>
+    <item>
+      <title>AutoSwitch {{VERSION}}</title>
+      <pubDate>{{PUB_DATE}}</pubDate>
+      <enclosure url="{{ARCHIVE_URL}}" sparkle:version="{{VERSION}}" sparkle:shortVersionString="{{SHORT_VERSION}}" length="{{ARCHIVE_SIZE}}" type="application/zip" sparkle:edSignature="{{ED_SIGNATURE}}" />
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <link>{{RELEASE_NOTES_URL}}</link>
+    </item>
+  </channel>
+</rss>
