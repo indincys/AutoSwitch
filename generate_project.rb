@@ -112,8 +112,8 @@ app_target.package_product_dependencies << sparkle_dep
 
 common_app_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitch',
-  'MARKETING_VERSION' => '0.1.0',
-  'CURRENT_PROJECT_VERSION' => '1',
+  'MARKETING_VERSION' => '0.1.1',
+  'CURRENT_PROJECT_VERSION' => '2',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
@@ -145,8 +145,8 @@ app_target.resources_build_phase.add_file_reference(assets_contents)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
-  'MARKETING_VERSION' => '0.1.0',
-  'CURRENT_PROJECT_VERSION' => '1',
+  'MARKETING_VERSION' => '0.1.1',
+  'CURRENT_PROJECT_VERSION' => '2',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
