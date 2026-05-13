@@ -169,6 +169,9 @@ final class AppState: ObservableObject {
     }
 
     func showSettingsWindow() {
+        if !isTestEnvironment {
+            NSApp.setActivationPolicy(.regular)
+        }
         if let window = settingsWindow {
             logger.info("reusing settings window")
             showAndCorrectSettingsWindow(window, resetContentSize: false)
@@ -266,5 +269,9 @@ final class AppState: ObservableObject {
     fileprivate func clearSettingsWindow() {
         settingsWindow = nil
         settingsWindowDelegate = nil
+        guard !isTestEnvironment else { return }
+        DispatchQueue.main.async {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 }

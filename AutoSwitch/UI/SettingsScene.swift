@@ -10,9 +10,6 @@ struct SettingsScene: View {
 
             AppRulesTab()
                 .tabItem { Label("Apps", systemImage: "app.badge") }
-
-            SpotlightTab()
-                .tabItem { Label("Launchers", systemImage: "magnifyingglass") }
         }
         .frame(minWidth: AppState.settingsWindowMinimumContentSize.width,
                minHeight: AppState.settingsWindowMinimumContentSize.height)

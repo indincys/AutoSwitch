@@ -6,47 +6,82 @@ struct AppRulesTab: View {
     @State private var searchText: String = ""
     @State private var showAddPopover: Bool = false
 
-    private var filteredRules: [AppRule] {
-        let rules = appState.configStore.config.appRules
-        guard !searchText.isEmpty else { return rules }
-        let needle = searchText.lowercased()
-        return rules.filter { rule in
-            rule.displayName.lowercased().contains(needle)
-                || rule.bundleID.lowercased().contains(needle)
+    fileprivate enum UnifiedKind: Hashable {
+        case app
+        case launcher
+    }
+
+    fileprivate struct UnifiedRuleHandle: Identifiable, Hashable {
+        let kind: UnifiedKind
+        let bundleID: String
+        let displayName: String
+        var id: String { "\(kind):\(bundleID)" }
+    }
+
+    private var allRules: [UnifiedRuleHandle] {
+        let apps = appState.configStore.config.appRules.map {
+            UnifiedRuleHandle(kind: .app, bundleID: $0.bundleID, displayName: $0.displayName)
         }
+        let launchers = appState.configStore.config.spotlightRules.map {
+            UnifiedRuleHandle(kind: .launcher, bundleID: $0.bundleID, displayName: $0.displayName)
+        }
+        return (apps + launchers).sorted { lhs, rhs in
+            lhs.displayName.localizedCaseInsensitiveCompare(rhs.displayName) == .orderedAscending
+        }
+    }
+
+    private var filteredRules: [UnifiedRuleHandle] {
+        guard !searchText.isEmpty else { return allRules }
+        let needle = searchText.lowercased()
+        return allRules.filter { handle in
+            handle.displayName.lowercased().contains(needle)
+                || handle.bundleID.lowercased().contains(needle)
+        }
+    }
+
+    private var hasLauncherRules: Bool {
+        !appState.configStore.config.spotlightRules.isEmpty
     }
 
     var body: some View {
         VStack(spacing: 0) {
+            if hasLauncherRules && !appState.permissionsManager.accessibilityAuthorized {
+                AccessibilityBanner()
+            }
+
             RuleToolbar(
                 searchText: $searchText,
-                searchPrompt: "Search apps",
-                addLabel: "Add App",
+                searchPrompt: "Search",
+                addLabel: "Add",
                 addAction: { showAddPopover = true },
                 isAddPresented: $showAddPopover
             ) {
-                AddAppPopover(title: "Add App Rule") { bundleID, displayName, path in
-                    addRule(bundleID: bundleID, displayName: displayName, path: path)
+                AddAppPopover(
+                    availableInputSources: appState.inputSourceController.availableInputSources,
+                    defaultInputSourceID: appState.configStore.config.globalDefaultInputSourceID
+                ) { items, inputSourceID in
+                    addRules(items: items, inputSourceID: inputSourceID)
                 }
             }
 
             Divider()
 
-            if appState.configStore.config.appRules.isEmpty {
+            if allRules.isEmpty {
                 ContentUnavailableView {
-                    Label("No App Rules", systemImage: "app.badge")
+                    Label("No Apps", systemImage: "app.badge")
                 } description: {
-                    Text("Add an app to automatically switch its input source when it comes to the front.")
+                    Text("Add an app to set its input source when it activates.")
                 } actions: {
-                    Button("Add App") { showAddPopover = true }
+                    Button("Add") { showAddPopover = true }
                         .buttonStyle(.borderedProminent)
                 }
             } else if filteredRules.isEmpty {
                 ContentUnavailableView.search(text: searchText)
             } else {
                 List {
-                    ForEach(filteredRules) { rule in
-                        AppRuleRow(rule: rule)
+                    ForEach(filteredRules) { handle in
+                        UnifiedRuleRow(kind: handle.kind, bundleID: handle.bundleID)
+                            .id(handle.id)
                     }
                 }
                 .listStyle(.inset)
@@ -54,39 +89,117 @@ struct AppRulesTab: View {
         }
     }
 
-    private func addRule(bundleID: String, displayName: String, path: String?) {
-        let trimmed = bundleID.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
-        let defaultID = appState.configStore.config.globalDefaultInputSourceID
+    private func addRules(items: [AddAppItem], inputSourceID: String?) {
+        guard !items.isEmpty else { return }
+        let resolvedAppID = inputSourceID
+            ?? appState.configStore.config.globalDefaultInputSourceID
             ?? appState.inputSourceController.availableInputSources.first?.id
             ?? ""
-        appState.configStore.upsertAppRule(
-            bundleID: trimmed,
-            displayName: displayName.isEmpty ? trimmed : displayName,
-            inputSourceID: defaultID,
-            enabled: true,
-            lastSeenPath: path
-        )
+        let knownLaunchers = Set(BuiltinSpotlightBundles.defaultBundleIDs)
+
+        for item in items {
+            let trimmed = item.bundleID.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+            let name = item.displayName.isEmpty ? trimmed : item.displayName
+            if knownLaunchers.contains(trimmed) {
+                appState.configStore.upsertSpotlightRule(
+                    bundleID: trimmed,
+                    displayName: name,
+                    inputSourceID: inputSourceID,
+                    enabled: true,
+                    isBuiltin: false
+                )
+            } else {
+                appState.configStore.upsertAppRule(
+                    bundleID: trimmed,
+                    displayName: name,
+                    inputSourceID: resolvedAppID,
+                    enabled: true,
+                    lastSeenPath: item.path
+                )
+            }
+        }
         showAddPopover = false
     }
 }
 
-private struct AppRuleRow: View {
+private struct AccessibilityBanner: View {
     @EnvironmentObject private var appState: AppState
-    let rule: AppRule
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Accessibility permission required")
+                    .font(.callout.weight(.semibold))
+                Text("Some apps need Accessibility to detect when their panel appears.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Grant…") {
+                appState.permissionsManager.requestAccessibilityAccess()
+                appState.permissionsManager.openAccessibilitySettings()
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color.orange.opacity(0.12))
+    }
+}
+
+private struct UnifiedRuleRow: View {
+    @EnvironmentObject private var appState: AppState
+    let kind: AppRulesTab.UnifiedKind
+    let bundleID: String
+
+    private var appRule: AppRule? {
+        guard kind == .app else { return nil }
+        return appState.configStore.config.appRules.first { $0.bundleID == bundleID }
+    }
+
+    private var launcherRule: SpotlightRule? {
+        guard kind == .launcher else { return nil }
+        return appState.configStore.config.spotlightRules.first { $0.bundleID == bundleID }
+    }
+
+    private var displayName: String {
+        appRule?.displayName ?? launcherRule?.displayName ?? bundleID
+    }
+
+    private var enabled: Bool {
+        appRule?.enabled ?? launcherRule?.enabled ?? true
+    }
+
+    private var inputSourceID: String? {
+        if let r = appRule {
+            return r.inputSourceID.isEmpty ? nil : r.inputSourceID
+        }
+        return launcherRule?.inputSourceID
+    }
+
+    private var lastSeenPath: String? {
+        appRule?.lastSeenPath
+    }
 
     private var icon: NSImage? {
-        if let path = rule.lastSeenPath, FileManager.default.fileExists(atPath: path) {
+        if let path = lastSeenPath, FileManager.default.fileExists(atPath: path) {
             return NSWorkspace.shared.icon(forFile: path)
         }
-        if let bundleURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: rule.bundleID) {
+        if let bundleURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
             return NSWorkspace.shared.icon(forFile: bundleURL.path)
         }
         return nil
     }
 
+    private var pickerSources: [InputSource] {
+        appState.inputSourceController.availableInputSources.selectableForPicker()
+    }
+
     private var isInputSourceMissing: Bool {
-        appState.inputSourceController.inputSource(with: rule.inputSourceID) == nil
+        guard let id = inputSourceID, !id.isEmpty else { return false }
+        return !pickerSources.contains(where: { $0.id == id })
     }
 
     var body: some View {
@@ -95,14 +208,14 @@ private struct AppRuleRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(rule.displayName)
+                    Text(displayName)
                         .font(.body)
                         .lineLimit(1)
                     if isInputSourceMissing {
                         StatusPill(title: "Missing Source", systemImage: "exclamationmark.triangle.fill", tint: .orange)
                     }
                 }
-                Text(rule.bundleID)
+                Text(bundleID)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -110,54 +223,81 @@ private struct AppRuleRow: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Picker("Input Source", selection: Binding(
-                get: { rule.inputSourceID },
-                set: { newValue in
-                    appState.configStore.upsertAppRule(
-                        bundleID: rule.bundleID,
-                        displayName: rule.displayName,
-                        inputSourceID: newValue,
-                        enabled: rule.enabled,
-                        lastSeenPath: rule.lastSeenPath
-                    )
-                }
-            )) {
-                if isInputSourceMissing, !rule.inputSourceID.isEmpty {
-                    Text("Missing (\(rule.inputSourceID))").tag(rule.inputSourceID)
-                }
-                ForEach(appState.inputSourceController.availableInputSources) { source in
-                    Text(source.localizedName).tag(source.id)
-                }
-            }
+            InputSourcePicker(
+                sources: appState.inputSourceController.availableInputSources,
+                selection: Binding(
+                    get: { inputSourceID },
+                    set: { newValue in setInputSource(newValue) }
+                )
+            )
             .labelsHidden()
             .frame(width: 180)
 
             Toggle("Enabled", isOn: Binding(
-                get: { rule.enabled },
-                set: { enabled in
-                    appState.configStore.upsertAppRule(
-                        bundleID: rule.bundleID,
-                        displayName: rule.displayName,
-                        inputSourceID: rule.inputSourceID,
-                        enabled: enabled,
-                        lastSeenPath: rule.lastSeenPath
-                    )
-                }
+                get: { enabled },
+                set: { setEnabled($0) }
             ))
             .labelsHidden()
             .toggleStyle(.switch)
             .controlSize(.small)
 
-            Button {
-                appState.configStore.removeAppRule(bundleID: rule.bundleID)
-            } label: {
+            Button(action: deleteRule) {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
-            .help("Delete rule")
+            .help("Delete")
         }
         .padding(.vertical, 4)
-        .opacity(rule.enabled ? 1 : 0.55)
+        .opacity(enabled ? 1 : 0.55)
+    }
+
+    private func setInputSource(_ newValue: String?) {
+        if let r = appRule {
+            appState.configStore.upsertAppRule(
+                bundleID: r.bundleID,
+                displayName: r.displayName,
+                inputSourceID: newValue ?? "",
+                enabled: r.enabled,
+                lastSeenPath: r.lastSeenPath
+            )
+        } else if let r = launcherRule {
+            appState.configStore.upsertSpotlightRule(
+                bundleID: r.bundleID,
+                displayName: r.displayName,
+                inputSourceID: newValue,
+                enabled: r.enabled,
+                isBuiltin: r.isBuiltin
+            )
+        }
+    }
+
+    private func setEnabled(_ value: Bool) {
+        if let r = appRule {
+            appState.configStore.upsertAppRule(
+                bundleID: r.bundleID,
+                displayName: r.displayName,
+                inputSourceID: r.inputSourceID,
+                enabled: value,
+                lastSeenPath: r.lastSeenPath
+            )
+        } else if let r = launcherRule {
+            appState.configStore.upsertSpotlightRule(
+                bundleID: r.bundleID,
+                displayName: r.displayName,
+                inputSourceID: r.inputSourceID,
+                enabled: value,
+                isBuiltin: r.isBuiltin
+            )
+        }
+    }
+
+    private func deleteRule() {
+        switch kind {
+        case .app:
+            appState.configStore.removeAppRule(bundleID: bundleID)
+        case .launcher:
+            appState.configStore.removeSpotlightRule(bundleID: bundleID)
+        }
     }
 }
