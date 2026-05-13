@@ -2,28 +2,61 @@
 
 ## Repository Context
 
-This repository contains AutoSwitch, a self-use native macOS app for Apple Silicon and macOS 26 that switches macOS system input sources by active app rules.
+AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 26 that switches the macOS system input source based on the active app. It runs as an accessory app (no Dock icon, no menu bar item); opening the app shows the settings window, and opening it again signals the existing instance to bring that window back.
 
-## Read First
+## Layout
 
-Before implementation or review work, read these files in order:
+- `AutoSwitch/App/` — entry point, `AppState`, single-instance coordinator, `Info.plist`, entitlements.
+- `AutoSwitch/Config/` — config schema, persistence, builtin Spotlight bundle IDs.
+- `AutoSwitch/Engine/` — `RuleEngine`, `FocusCoordinator`, `SwitchScheduler` (debounce + verify).
+- `AutoSwitch/InputSource/` — Carbon TIS wrapper and classifier.
+- `AutoSwitch/Monitor/` — `NSWorkspace`, lock screen, and Spotlight-panel AX observers.
+- `AutoSwitch/System/` — login item, permissions, document-switch checker, system settings deep links.
+- `AutoSwitch/UI/` — SwiftUI settings scene and components.
+- `AutoSwitch/Update/` — Sparkle controller.
+- `AutoSwitch/Resources/Assets.xcassets/` — app icon and global assets.
+- `AutoSwitchTests/` — XCTest unit tests.
+- `Scripts/` — `release.sh`, `manual-smoke.sh`, appcast template.
+- `script/build_and_run.sh` — local build/run helper (`run`, `--debug`, `--logs`, `--telemetry`, `--verify`).
+- `generate_project.rb` — regenerates `AutoSwitch.xcodeproj` via `xcodeproj` gem.
 
-1. `PLAN.md` - stable product and technical specification.
-2. `GOAL.md` - active `/goal` execution contract, scope, stopping condition and pause rules.
-3. `docs/goal/progress.md` - live checkpoint status. Treat this as the current progress source and rewrite it after meaningful checkpoints.
-4. `macos-floating-teacup.md` - original user-provided technical selection notes, useful when implementation needs rationale behind `PLAN.md`.
+## Build And Run
 
-## Document Roles
+```bash
+./script/build_and_run.sh           # build Debug and launch
+./script/build_and_run.sh --verify  # build, launch, confirm process is alive
+xcodebuild test -project AutoSwitch.xcodeproj -scheme AutoSwitch \
+  -destination 'platform=macOS,arch=arm64' -derivedDataPath DerivedData
+```
 
-- `PLAN.md` defines the product, architecture, data model, UI requirements, non-goals and acceptance checklist.
-- `GOAL.md` defines the current long-running objective, validation proof, run control and pause conditions.
-- `docs/goal/progress.md` records current execution state only. Do not append a long history.
-- `AGENTS.md` contains durable repository guidance only. Do not put transient status, checkpoint progress, or "repository is empty" style snapshots here.
+To regenerate the Xcode project after touching `generate_project.rb`:
+
+```bash
+ruby generate_project.rb
+```
+
+## Release
+
+```bash
+Scripts/release.sh --dry-run   # validate environment / build chain
+Scripts/release.sh             # full release
+```
+
+Required env vars: `AUTOSWITCH_SIGNING_IDENTITY`, `AUTOSWITCH_REPO`, `AUTOSWITCH_RELEASE_TAG`, `AUTOSWITCH_RELEASE_NOTES_URL`, `AUTOSWITCH_FEED_URL`. Optional: `AUTOSWITCH_ED_PRIVATE_KEY` (otherwise Sparkle reads its key from the macOS Keychain). The script archives, signs, zips, signs the zip with EdDSA, writes `appcast.xml`, and uses `gh release create` when available.
 
 ## Durable Constraints
 
-- Build a native macOS app with Swift 6, SwiftUI/AppKit where appropriate, Carbon TIS APIs, Accessibility AX observer, `SMAppService`, Sparkle 2.x and Swift Package Manager.
-- Target Apple Silicon and macOS 26 only.
-- Do not add Intel support, App Store distribution, Developer ID notarization, menu bar residency, cloud sync, telemetry, or third-party IME internal mode handling unless the user explicitly changes scope.
-- Do not store Sparkle private keys, signing certificate material, GitHub tokens, or other secrets in the repository.
-- Treat `docs/goal/progress.md` and the actual filesystem as live state after context compaction or `/goal resume`.
+- Swift 6, SwiftUI/AppKit, Carbon TIS, AX observers, `SMAppService`, Sparkle 2.x via SwiftPM.
+- Target: Apple Silicon, macOS 26.
+- Do not add Intel support, App Store distribution, Developer ID notarization, menu bar residency, cloud sync, telemetry, or third-party IME internal mode handling unless scope is explicitly expanded.
+- Do not store Sparkle private keys, signing certificates, or GitHub tokens in the repository.
+- Settings window must not be always-on-top. It is a normal window the user can move behind other apps.
+- Config persists at `~/Library/Application Support/AutoSwitch/config.json`; on parse failure, back up as `config.corrupt.<timestamp>.json` and start from defaults.
+
+## Logs
+
+```bash
+log show --info --style compact --predicate 'subsystem == "dev.autoswitch"' --last 5m
+```
+
+Categories: `app`, `app-state`, `input-source`, `coordinator`, `scheduler`, `spotlight-monitor`, `single-instance`.

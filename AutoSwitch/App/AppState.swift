@@ -196,7 +196,6 @@ final class AppState: ObservableObject {
         window.backgroundColor = .windowBackgroundColor
         window.hidesOnDeactivate = false
         window.collectionBehavior = [.managed]
-        window.level = .floating
         window.isRestorable = false
         window.tabbingMode = .disallowed
         let delegate = SettingsWindowDelegate(owner: self)
@@ -259,11 +258,8 @@ final class AppState: ObservableObject {
     }
 
     private func activate(_ window: NSWindow) {
-        NSRunningApplication.current.activate(options: [.activateAllWindows])
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate(ignoringOtherApps: false)
         window.makeKeyAndOrderFront(nil)
-        window.orderFrontRegardless()
-        window.makeKey()
     }
 
     fileprivate func clearSettingsWindow() {

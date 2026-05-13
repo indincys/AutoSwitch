@@ -24,9 +24,13 @@ struct GeneralTab: View {
                 InputSourcePicker(
                     sources: appState.inputSourceController.availableInputSources,
                     selection: Binding(
-                        get: { appState.configStore.config.globalDefaultInputSourceID },
+                        get: {
+                            appState.configStore.config.globalDefaultInputSourceID
+                                ?? appState.inputSourceController.availableInputSources.selectableForPicker().first?.id
+                        },
                         set: { appState.configStore.setGlobalDefaultInputSourceID($0) }
-                    )
+                    ),
+                    allowNone: false
                 )
             } header: {
                 Text("Default Input Source")

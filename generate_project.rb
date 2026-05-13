@@ -31,9 +31,9 @@ scripts_group.source_tree = '<group>'
 resources_group = app_group.new_group('Resources')
 resources_group.path = 'Resources'
 resources_group.source_tree = '<group>'
-assets_group = resources_group.new_group('Assets.xcassets')
-assets_group.path = 'Assets.xcassets'
-assets_group.source_tree = '<group>'
+assets_ref = resources_group.new_file('Assets.xcassets')
+assets_ref.last_known_file_type = 'folder.assetcatalog'
+assets_ref.source_tree = '<group>'
 
 app_files = %w[
   App/AutoSwitchApp.swift
@@ -54,6 +54,7 @@ app_files = %w[
   Monitor/FocusEvent.swift
   Monitor/LockScreenMonitor.swift
   Monitor/SpotlightPanelMonitor.swift
+  Monitor/VisibilityDiff.swift
   System/DocumentSwitchChecker.swift
   System/LoginItemManager.swift
   System/PermissionsManager.swift
@@ -75,6 +76,7 @@ test_files = %w[
   ConfigStoreTests.swift
   AppStateWindowSizingTests.swift
   FocusCoordinatorTests.swift
+  VisibilityDiffTests.swift
 ]
 
 app_file_refs = app_files.map do |relative|
@@ -90,9 +92,6 @@ test_file_refs = test_files.map do |relative|
   ref.source_tree = '<group>'
   ref
 end
-
-assets_contents = assets_group.new_file('Contents.json')
-assets_contents.source_tree = '<group>'
 
 app_target = project.new_target(:application, 'AutoSwitch', :osx, '26.0')
 app_target.product_name = 'AutoSwitch'
@@ -112,8 +111,8 @@ app_target.package_product_dependencies << sparkle_dep
 
 common_app_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitch',
-  'MARKETING_VERSION' => '0.1.1',
-  'CURRENT_PROJECT_VERSION' => '2',
+  'MARKETING_VERSION' => '0.1.2',
+  'CURRENT_PROJECT_VERSION' => '3',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
@@ -141,12 +140,12 @@ end
 
 app_target.source_build_phase.files.clear
 app_file_refs.each { |ref| app_target.add_file_references([ref]) }
-app_target.resources_build_phase.add_file_reference(assets_contents)
+app_target.resources_build_phase.add_file_reference(assets_ref)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
-  'MARKETING_VERSION' => '0.1.1',
-  'CURRENT_PROJECT_VERSION' => '2',
+  'MARKETING_VERSION' => '0.1.2',
+  'CURRENT_PROJECT_VERSION' => '3',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
