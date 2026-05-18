@@ -3,7 +3,7 @@ import Sparkle
 
 @MainActor
 final class UpdaterController: ObservableObject {
-    @Published private(set) var lastCheckMessage = "Not checked"
+    @Published private(set) var lastCheckMessage = "尚未检查"
 
     private let controller: SPUStandardUpdaterController
     private let updaterDelegate = SparkleUpdaterDelegate()
@@ -47,7 +47,7 @@ final class UpdaterController: ObservableObject {
 
     func startUpdater() {
         guard isConfiguredForRelease else {
-            lastCheckMessage = "Release configuration is missing."
+            lastCheckMessage = "缺少发布配置。"
             return
         }
         controller.startUpdater()
@@ -55,10 +55,10 @@ final class UpdaterController: ObservableObject {
 
     func checkForUpdates() {
         guard isConfiguredForRelease else {
-            lastCheckMessage = "Release configuration is missing."
+            lastCheckMessage = "缺少发布配置。"
             return
         }
-        lastCheckMessage = "Update check requested."
+        lastCheckMessage = "已请求检查更新。"
         controller.checkForUpdates(nil)
     }
 }

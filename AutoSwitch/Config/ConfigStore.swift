@@ -89,6 +89,33 @@ final class ConfigStore: ObservableObject {
         }
     }
 
+    func setInputSourceForRules(appBundleIDs: Set<String>, spotlightBundleIDs: Set<String>, inputSourceID: String) {
+        guard !inputSourceID.isEmpty else { return }
+        guard !appBundleIDs.isEmpty || !spotlightBundleIDs.isEmpty else { return }
+
+        update { config in
+            for index in config.appRules.indices where appBundleIDs.contains(config.appRules[index].bundleID) {
+                config.appRules[index].inputSourceID = inputSourceID
+            }
+            for index in config.spotlightRules.indices where spotlightBundleIDs.contains(config.spotlightRules[index].bundleID) {
+                config.spotlightRules[index].inputSourceID = inputSourceID
+            }
+        }
+    }
+
+    func removeRules(appBundleIDs: Set<String>, spotlightBundleIDs: Set<String>) {
+        guard !appBundleIDs.isEmpty || !spotlightBundleIDs.isEmpty else { return }
+
+        update { config in
+            config.appRules.removeAll { appBundleIDs.contains($0.bundleID) }
+            config.spotlightRules.removeAll { spotlightBundleIDs.contains($0.bundleID) }
+            let customSpotlightBundleIDs = spotlightBundleIDs.subtracting(BuiltinSpotlightBundles.defaultBundleIDs)
+            if !customSpotlightBundleIDs.isEmpty {
+                config.spotlightBundleIDs.removeAll { customSpotlightBundleIDs.contains($0) }
+            }
+        }
+    }
+
     func setLaunchAtLogin(_ enabled: Bool) {
         update { $0.launchAtLogin = enabled }
     }

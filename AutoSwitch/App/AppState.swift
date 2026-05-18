@@ -190,7 +190,7 @@ final class AppState: ObservableObject {
             defer: false
         )
         window.contentViewController = hostingController
-        window.title = "AutoSwitch"
+        window.title = "AutoSwitch 设置"
         window.isReleasedWhenClosed = false
         window.isOpaque = true
         window.backgroundColor = .windowBackgroundColor

@@ -176,13 +176,29 @@ struct AddAppPopover: View {
         selectedBundleIDs.count + manualEntries.count
     }
 
+    private var pickerSources: [InputSource] {
+        availableInputSources.selectableForPicker()
+    }
+
+    private var resolvedPickedInputSourceID: String? {
+        if let pickedInputSourceID,
+           pickerSources.contains(where: { $0.id == pickedInputSourceID }) {
+            return pickedInputSourceID
+        }
+        if let defaultInputSourceID,
+           pickerSources.contains(where: { $0.id == defaultInputSourceID }) {
+            return defaultInputSourceID
+        }
+        return pickerSources.first?.id
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Add Apps").font(.headline)
+                Text("添加应用").font(.headline)
                 Spacer()
                 if selectionCount > 0 {
-                    Button("Clear") {
+                    Button("清空") {
                         selectedBundleIDs.removeAll()
                         manualEntries.removeAll()
                     }
@@ -194,7 +210,7 @@ struct AddAppPopover: View {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("Search installed apps", text: $search)
+                TextField("搜索已安装应用", text: $search)
                     .textFieldStyle(.plain)
             }
             .padding(.horizontal, 8)
@@ -205,7 +221,7 @@ struct AddAppPopover: View {
                 if isScanning && installedApps.isEmpty {
                     HStack {
                         ProgressView().controlSize(.small)
-                        Text("Scanning Applications…")
+                        Text("正在扫描应用...")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -236,7 +252,7 @@ struct AddAppPopover: View {
                             )
                         }
                         if filteredApps.isEmpty && manualEntries.isEmpty && !isScanning {
-                            Text(search.isEmpty ? "No apps found in standard locations." : "No matches.")
+                            Text(search.isEmpty ? "标准应用目录中没有找到应用。" : "没有匹配项。")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.vertical, 20)
@@ -252,31 +268,34 @@ struct AddAppPopover: View {
             Button {
                 browseApplications()
             } label: {
-                Label("Browse Applications…", systemImage: "folder")
+                Label("浏览应用...", systemImage: "folder")
                     .frame(maxWidth: .infinity)
             }
             .controlSize(.regular)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Input source for selected")
+                Text("所选应用的输入法")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 InputSourcePicker(
                     sources: availableInputSources,
-                    selection: $pickedInputSourceID
+                    selection: Binding(
+                        get: { resolvedPickedInputSourceID },
+                        set: { pickedInputSourceID = $0 }
+                    )
                 )
                 .labelsHidden()
             }
 
-            DisclosureGroup("Add by Bundle ID", isExpanded: $manualExpanded) {
+            DisclosureGroup("通过包标识符添加", isExpanded: $manualExpanded) {
                 VStack(alignment: .leading, spacing: 8) {
-                    TextField("Display Name (optional)", text: $manualDisplayName)
+                    TextField("显示名称（可选）", text: $manualDisplayName)
                         .textFieldStyle(.roundedBorder)
-                    TextField("Bundle ID", text: $manualBundleID)
+                    TextField("包标识符", text: $manualBundleID)
                         .textFieldStyle(.roundedBorder)
                     HStack {
                         Spacer()
-                        Button("Add to Selection") {
+                        Button("加入选择") {
                             addManualEntry()
                         }
                         .disabled(manualBundleID.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -288,7 +307,7 @@ struct AddAppPopover: View {
             Divider()
 
             HStack {
-                Text("\(selectionCount) selected")
+                Text("已选择 \(selectionCount) 个")
                     .foregroundStyle(.secondary)
                     .font(.caption)
                 Spacer()
@@ -316,9 +335,8 @@ struct AddAppPopover: View {
     }
 
     private var commitButtonLabel: String {
-        if selectionCount == 0 { return "Add" }
-        if selectionCount == 1 { return "Add 1 App" }
-        return "Add \(selectionCount) Apps"
+        if selectionCount == 0 { return "添加" }
+        return "添加 \(selectionCount) 个应用"
     }
 
     private func addManualEntry() {
@@ -343,8 +361,8 @@ struct AddAppPopover: View {
         panel.canChooseFiles = true
         panel.resolvesAliases = true
         panel.directoryURL = URL(fileURLWithPath: "/Applications")
-        panel.message = "Choose apps to add (double-click an app to add it)"
-        panel.prompt = "Add"
+        panel.message = "选择要添加的应用（双击应用即可添加）"
+        panel.prompt = "添加"
 
         guard panel.runModal() == .OK else { return }
 
@@ -377,7 +395,7 @@ struct AddAppPopover: View {
             }
         }
         items.append(contentsOf: manualEntries)
-        onCommit(items, pickedInputSourceID)
+        onCommit(items, resolvedPickedInputSourceID)
     }
 }
 

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>AutoSwitch Updates</title>
+    <title>AutoSwitch 更新</title>
     <link>{{FEED_URL}}</link>
-    <description>AutoSwitch release feed</description>
-    <language>en</language>
+    <description>AutoSwitch 更新源</description>
+    <language>zh-CN</language>
     <item>
       <title>AutoSwitch {{VERSION}}</title>
       <pubDate>{{PUB_DATE}}</pubDate>

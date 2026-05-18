@@ -3,21 +3,30 @@ import SwiftUI
 struct InputSourcePicker: View {
     let sources: [InputSource]
     @Binding var selection: String?
-    var allowNone: Bool = true
-    var noneLabel: String = "None"
+    var allowNone: Bool = false
+    var noneLabel: String = "无"
 
     private var pickerSources: [InputSource] { sources.selectableForPicker() }
+    private var fallbackSelectionID: String { pickerSources.first?.id ?? "" }
+    private var resolvedSelectionID: String {
+        guard let selection, !selection.isEmpty else {
+            return allowNone ? "" : fallbackSelectionID
+        }
+        return selection
+    }
 
     var body: some View {
-        Picker("Input Source", selection: Binding(
-            get: { selection ?? "" },
-            set: { selection = $0.isEmpty ? nil : $0 }
+        Picker("输入法", selection: Binding(
+            get: { resolvedSelectionID },
+            set: { newValue in
+                selection = newValue.isEmpty && allowNone ? nil : newValue
+            }
         )) {
             if allowNone {
                 Text(noneLabel).tag("")
             }
             if let id = selection, !id.isEmpty, !pickerSources.contains(where: { $0.id == id }) {
-                Text("Missing (\(id))").tag(id)
+                Text("缺失 (\(id))").tag(id)
             }
             ForEach(pickerSources) { source in
                 Text(pickerSources.displayLabel(for: source)).tag(source.id)

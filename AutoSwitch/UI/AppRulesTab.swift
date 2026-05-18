@@ -5,6 +5,9 @@ struct AppRulesTab: View {
     @EnvironmentObject private var appState: AppState
     @State private var searchText: String = ""
     @State private var showAddPopover: Bool = false
+    @State private var selectedRuleIDs: Set<String> = []
+    @State private var bulkInputSourceID: String?
+    @State private var showBulkDeleteConfirmation: Bool = false
 
     fileprivate enum UnifiedKind: Hashable {
         case app
@@ -43,6 +46,35 @@ struct AppRulesTab: View {
         !appState.configStore.config.spotlightRules.isEmpty
     }
 
+    private var selectedRules: [UnifiedRuleHandle] {
+        allRules.filter { selectedRuleIDs.contains($0.id) }
+    }
+
+    private var selectedAppBundleIDs: Set<String> {
+        Set(selectedRules.filter { $0.kind == .app }.map(\.bundleID))
+    }
+
+    private var selectedLauncherBundleIDs: Set<String> {
+        Set(selectedRules.filter { $0.kind == .launcher }.map(\.bundleID))
+    }
+
+    private var selectableInputSources: [InputSource] {
+        appState.inputSourceController.availableInputSources.selectableForPicker()
+    }
+
+    private var defaultBulkInputSourceID: String? {
+        let configuredDefaultID = appState.configStore.config.globalDefaultInputSourceID
+        if let configuredDefaultID,
+           selectableInputSources.contains(where: { $0.id == configuredDefaultID }) {
+            return configuredDefaultID
+        }
+        return selectableInputSources.first?.id
+    }
+
+    private var resolvedBulkInputSourceID: String? {
+        bulkInputSourceID ?? defaultBulkInputSourceID
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if hasLauncherRules && !appState.permissionsManager.accessibilityAuthorized {
@@ -51,8 +83,8 @@ struct AppRulesTab: View {
 
             RuleToolbar(
                 searchText: $searchText,
-                searchPrompt: "Search",
-                addLabel: "Add",
+                searchPrompt: "搜索",
+                addLabel: "添加",
                 addAction: { showAddPopover = true },
                 isAddPresented: $showAddPopover
             ) {
@@ -64,28 +96,74 @@ struct AppRulesTab: View {
                 }
             }
 
+            if !selectedRuleIDs.isEmpty {
+                BulkRulesBar(
+                    selectedCount: selectedRuleIDs.count,
+                    availableInputSources: appState.inputSourceController.availableInputSources,
+                    selection: Binding(
+                        get: { resolvedBulkInputSourceID },
+                        set: { bulkInputSourceID = $0 }
+                    ),
+                    applyAction: applyBulkInputSource,
+                    deleteAction: { showBulkDeleteConfirmation = true },
+                    clearAction: { selectedRuleIDs.removeAll() }
+                )
+            }
+
             Divider()
 
             if allRules.isEmpty {
                 ContentUnavailableView {
-                    Label("No Apps", systemImage: "app.badge")
+                    Label("没有应用", systemImage: "app.badge")
                 } description: {
-                    Text("Add an app to set its input source when it activates.")
+                    Text("添加应用后，可在应用激活时自动切换到指定输入法。")
                 } actions: {
-                    Button("Add") { showAddPopover = true }
+                    Button("添加") { showAddPopover = true }
                         .buttonStyle(.borderedProminent)
                 }
             } else if filteredRules.isEmpty {
-                ContentUnavailableView.search(text: searchText)
+                ContentUnavailableView {
+                    Label("没有找到匹配项", systemImage: "magnifyingglass")
+                } description: {
+                    Text("没有与“\(searchText)”匹配的规则。")
+                }
             } else {
                 List {
                     ForEach(filteredRules) { handle in
-                        UnifiedRuleRow(kind: handle.kind, bundleID: handle.bundleID)
+                        UnifiedRuleRow(
+                            kind: handle.kind,
+                            bundleID: handle.bundleID,
+                            isSelected: Binding(
+                                get: { selectedRuleIDs.contains(handle.id) },
+                                set: { isSelected in
+                                    if isSelected {
+                                        selectedRuleIDs.insert(handle.id)
+                                    } else {
+                                        selectedRuleIDs.remove(handle.id)
+                                    }
+                                }
+                            )
+                        )
                             .id(handle.id)
                     }
                 }
                 .listStyle(.inset)
             }
+        }
+        .confirmationDialog(
+            "删除所选规则？",
+            isPresented: $showBulkDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("删除 \(selectedRuleIDs.count) 条规则", role: .destructive) {
+                deleteSelectedRules()
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("此操作会从规则列表中移除所选应用。")
+        }
+        .onChange(of: allRules.map(\.id)) { _, currentIDs in
+            selectedRuleIDs.formIntersection(Set(currentIDs))
         }
     }
 
@@ -93,7 +171,7 @@ struct AppRulesTab: View {
         guard !items.isEmpty else { return }
         let resolvedAppID = inputSourceID
             ?? appState.configStore.config.globalDefaultInputSourceID
-            ?? appState.inputSourceController.availableInputSources.first?.id
+            ?? appState.inputSourceController.availableInputSources.selectableForPicker().first?.id
             ?? ""
         let knownLaunchers = Set(BuiltinSpotlightBundles.defaultBundleIDs)
 
@@ -121,6 +199,23 @@ struct AppRulesTab: View {
         }
         showAddPopover = false
     }
+
+    private func applyBulkInputSource() {
+        guard let inputSourceID = resolvedBulkInputSourceID, !inputSourceID.isEmpty else { return }
+        appState.configStore.setInputSourceForRules(
+            appBundleIDs: selectedAppBundleIDs,
+            spotlightBundleIDs: selectedLauncherBundleIDs,
+            inputSourceID: inputSourceID
+        )
+    }
+
+    private func deleteSelectedRules() {
+        appState.configStore.removeRules(
+            appBundleIDs: selectedAppBundleIDs,
+            spotlightBundleIDs: selectedLauncherBundleIDs
+        )
+        selectedRuleIDs.removeAll()
+    }
 }
 
 private struct AccessibilityBanner: View {
@@ -131,14 +226,14 @@ private struct AccessibilityBanner: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Accessibility permission required")
+                Text("需要辅助功能权限")
                     .font(.callout.weight(.semibold))
-                Text("Some apps need Accessibility to detect when their panel appears.")
+                Text("部分启动器面板需要辅助功能权限才能被检测到。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Grant…") {
+            Button("授权...") {
                 appState.permissionsManager.requestAccessibilityAccess()
                 appState.permissionsManager.openAccessibilitySettings()
             }
@@ -153,6 +248,7 @@ private struct UnifiedRuleRow: View {
     @EnvironmentObject private var appState: AppState
     let kind: AppRulesTab.UnifiedKind
     let bundleID: String
+    @Binding var isSelected: Bool
 
     private var appRule: AppRule? {
         guard kind == .app else { return nil }
@@ -197,6 +293,19 @@ private struct UnifiedRuleRow: View {
         appState.inputSourceController.availableInputSources.selectableForPicker()
     }
 
+    private var fallbackInputSourceID: String? {
+        let configuredDefaultID = appState.configStore.config.globalDefaultInputSourceID
+        if let configuredDefaultID,
+           pickerSources.contains(where: { $0.id == configuredDefaultID }) {
+            return configuredDefaultID
+        }
+        return pickerSources.first?.id
+    }
+
+    private var resolvedInputSourceID: String? {
+        inputSourceID ?? fallbackInputSourceID
+    }
+
     private var isInputSourceMissing: Bool {
         guard let id = inputSourceID, !id.isEmpty else { return false }
         return !pickerSources.contains(where: { $0.id == id })
@@ -204,6 +313,10 @@ private struct UnifiedRuleRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            Toggle("选择", isOn: $isSelected)
+                .labelsHidden()
+                .toggleStyle(.checkbox)
+
             AppIcon(icon: icon)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -212,7 +325,7 @@ private struct UnifiedRuleRow: View {
                         .font(.body)
                         .lineLimit(1)
                     if isInputSourceMissing {
-                        StatusPill(title: "Missing Source", systemImage: "exclamationmark.triangle.fill", tint: .orange)
+                        StatusPill(title: "缺失输入法", systemImage: "exclamationmark.triangle.fill", tint: .orange)
                     }
                 }
                 Text(bundleID)
@@ -226,14 +339,14 @@ private struct UnifiedRuleRow: View {
             InputSourcePicker(
                 sources: appState.inputSourceController.availableInputSources,
                 selection: Binding(
-                    get: { inputSourceID },
+                    get: { resolvedInputSourceID },
                     set: { newValue in setInputSource(newValue) }
                 )
             )
             .labelsHidden()
             .frame(width: 180)
 
-            Toggle("Enabled", isOn: Binding(
+            Toggle("启用", isOn: Binding(
                 get: { enabled },
                 set: { setEnabled($0) }
             ))
@@ -246,7 +359,7 @@ private struct UnifiedRuleRow: View {
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
-            .help("Delete")
+            .help("删除")
         }
         .padding(.vertical, 4)
         .opacity(enabled ? 1 : 0.55)
@@ -299,5 +412,51 @@ private struct UnifiedRuleRow: View {
         case .launcher:
             appState.configStore.removeSpotlightRule(bundleID: bundleID)
         }
+    }
+}
+
+private struct BulkRulesBar: View {
+    let selectedCount: Int
+    let availableInputSources: [InputSource]
+    @Binding var selection: String?
+    let applyAction: () -> Void
+    let deleteAction: () -> Void
+    let clearAction: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text("已选择 \(selectedCount) 条")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            InputSourcePicker(
+                sources: availableInputSources,
+                selection: $selection
+            )
+            .labelsHidden()
+            .frame(width: 190)
+
+            Button {
+                applyAction()
+            } label: {
+                Label("应用到所选", systemImage: "checkmark.circle")
+            }
+            .disabled(selection?.isEmpty ?? true)
+
+            Button(role: .destructive) {
+                deleteAction()
+            } label: {
+                Label("删除所选", systemImage: "trash")
+            }
+
+            Spacer()
+
+            Button("清除选择") {
+                clearAction()
+            }
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 10)
     }
 }

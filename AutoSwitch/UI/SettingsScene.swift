@@ -6,10 +6,10 @@ struct SettingsScene: View {
     var body: some View {
         TabView {
             GeneralTab()
-                .tabItem { Label("General", systemImage: "gearshape") }
+                .tabItem { Label("通用", systemImage: "gearshape") }
 
             AppRulesTab()
-                .tabItem { Label("Apps", systemImage: "app.badge") }
+                .tabItem { Label("应用", systemImage: "app.badge") }
         }
         .frame(minWidth: AppState.settingsWindowMinimumContentSize.width,
                minHeight: AppState.settingsWindowMinimumContentSize.height)

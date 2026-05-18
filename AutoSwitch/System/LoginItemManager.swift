@@ -33,15 +33,15 @@ extension SMAppService.Status {
     var autoswitchDescription: String {
         switch self {
         case .notRegistered:
-            return "Not enabled"
+            return "未启用"
         case .enabled:
-            return "Enabled"
+            return "已启用"
         case .requiresApproval:
-            return "Needs approval"
+            return "需要批准"
         case .notFound:
-            return "Not found"
+            return "未找到"
         @unknown default:
-            return "Unknown"
+            return "未知"
         }
     }
 }

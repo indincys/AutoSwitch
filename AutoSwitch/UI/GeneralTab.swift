@@ -5,16 +5,16 @@ struct GeneralTab: View {
 
     var body: some View {
         Form {
-            Section("Status") {
+            Section("状态") {
                 CurrentInputSourceRow()
                 AccessibilityRow()
                 LaunchAtLoginRow()
                 if let error = appState.configStore.lastErrorMessage {
-                    Label("Config error: \(error)", systemImage: "exclamationmark.triangle.fill")
+                    Label("配置错误：\(error)", systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                 }
                 if DocumentSwitchChecker.currentPreference() == true {
-                    Label("macOS document input switching is on. Disable it in Keyboard settings to avoid system overrides.",
+                    Label("macOS 已开启“按文稿切换输入法”。建议在键盘设置中关闭，避免系统覆盖 AutoSwitch 的切换结果。",
                           systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                 }
@@ -33,14 +33,14 @@ struct GeneralTab: View {
                     allowNone: false
                 )
             } header: {
-                Text("Default Input Source")
+                Text("默认输入法")
             } footer: {
-                Text("Used when no app rule matches the active app.")
+                Text("当前应用没有匹配规则时使用。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Section("About") {
+            Section("关于") {
                 AboutRow()
             }
         }
@@ -53,13 +53,13 @@ private struct CurrentInputSourceRow: View {
 
     private var name: String {
         guard let id = appState.inputSourceController.currentInputSourceIDValue else {
-            return "Unknown"
+            return "未知"
         }
         return appState.inputSourceController.inputSource(with: id)?.localizedName ?? id
     }
 
     var body: some View {
-        LabeledContent("Current Input Source") {
+        LabeledContent("当前输入法") {
             Text(name).foregroundStyle(.secondary)
         }
     }
@@ -70,13 +70,13 @@ private struct AccessibilityRow: View {
 
     var body: some View {
         HStack {
-            Text("Accessibility")
+            Text("辅助功能权限")
             Spacer()
             if appState.permissionsManager.accessibilityAuthorized {
-                StatusPill(title: "Granted", systemImage: "checkmark.circle.fill", tint: .green)
+                StatusPill(title: "已授权", systemImage: "checkmark.circle.fill", tint: .green)
             } else {
-                StatusPill(title: "Required", systemImage: "exclamationmark.triangle.fill", tint: .orange)
-                Button("Grant…") {
+                StatusPill(title: "需要授权", systemImage: "exclamationmark.triangle.fill", tint: .orange)
+                Button("授权...") {
                     appState.permissionsManager.requestAccessibilityAccess()
                     appState.permissionsManager.openAccessibilitySettings()
                 }
@@ -90,7 +90,7 @@ private struct LaunchAtLoginRow: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        Toggle("Launch at login", isOn: Binding(
+        Toggle("登录时启动", isOn: Binding(
             get: { appState.configStore.config.launchAtLogin },
             set: {
                 appState.configStore.setLaunchAtLogin($0)
@@ -98,7 +98,7 @@ private struct LaunchAtLoginRow: View {
             }
         ))
         if appState.loginItemManager.status == .requiresApproval {
-            Label("Login item needs approval in System Settings.", systemImage: "exclamationmark.circle")
+            Label("登录项需要在系统设置中批准。", systemImage: "exclamationmark.circle")
                 .font(.caption)
                 .foregroundStyle(.orange)
         }
@@ -109,15 +109,15 @@ private struct AboutRow: View {
     @EnvironmentObject private var appState: AppState
 
     private var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "未知"
     }
 
     var body: some View {
-        LabeledContent("Version") {
+        LabeledContent("版本") {
             Text(version).foregroundStyle(.secondary)
         }
         HStack {
-            Button("Check for Updates") {
+            Button("检查更新") {
                 appState.updaterController.checkForUpdates()
             }
             .disabled(!appState.updaterController.canCheckForUpdates)
@@ -131,7 +131,7 @@ private struct AboutRow: View {
                 .truncationMode(.tail)
         }
         if !appState.updaterController.isConfiguredForRelease {
-            Label("Updates are not configured for this build.", systemImage: "info.circle")
+            Label("此构建未配置更新。", systemImage: "info.circle")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

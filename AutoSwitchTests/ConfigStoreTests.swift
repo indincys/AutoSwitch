@@ -111,4 +111,49 @@ final class ConfigStoreTests: XCTestCase {
             "built-in \(builtin) must remain observed even after its rule is removed"
         )
     }
+
+    func testBulkSetInputSourceUpdatesAppAndSpotlightRules() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let url = directory.appendingPathComponent("config.json")
+        let store = ConfigStore(fileURL: url)
+
+        store.upsertAppRule(bundleID: "com.apple.Safari", displayName: "Safari", inputSourceID: "abc")
+        store.upsertAppRule(bundleID: "com.apple.Terminal", displayName: "Terminal", inputSourceID: "abc")
+        store.upsertSpotlightRule(bundleID: "com.apple.Spotlight", displayName: "Spotlight", inputSourceID: nil, isBuiltin: true)
+
+        store.setInputSourceForRules(
+            appBundleIDs: ["com.apple.Safari"],
+            spotlightBundleIDs: ["com.apple.Spotlight"],
+            inputSourceID: "zh"
+        )
+
+        XCTAssertEqual(store.config.appRules.first { $0.bundleID == "com.apple.Safari" }?.inputSourceID, "zh")
+        XCTAssertEqual(store.config.appRules.first { $0.bundleID == "com.apple.Terminal" }?.inputSourceID, "abc")
+        XCTAssertEqual(store.config.spotlightRules.first { $0.bundleID == "com.apple.Spotlight" }?.inputSourceID, "zh")
+    }
+
+    func testBulkRemoveRulesPreservesBuiltinSpotlightObservationAndRemovesCustomObservation() throws {
+        guard let builtin = BuiltinSpotlightBundles.defaultBundleIDs.first else {
+            XCTFail("expected at least one built-in spotlight bundle")
+            return
+        }
+        let custom = "com.qsapp.Quicksilver"
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let url = directory.appendingPathComponent("config.json")
+        let store = ConfigStore(fileURL: url)
+
+        store.upsertAppRule(bundleID: "com.apple.Safari", displayName: "Safari", inputSourceID: "abc")
+        store.upsertSpotlightRule(bundleID: builtin, displayName: builtin, inputSourceID: "abc", isBuiltin: true)
+        store.upsertSpotlightRule(bundleID: custom, displayName: "Quicksilver", inputSourceID: "abc")
+
+        store.removeRules(
+            appBundleIDs: ["com.apple.Safari"],
+            spotlightBundleIDs: [builtin, custom]
+        )
+
+        XCTAssertTrue(store.config.appRules.isEmpty)
+        XCTAssertTrue(store.config.spotlightRules.isEmpty)
+        XCTAssertTrue(store.config.spotlightBundleIDs.contains(builtin))
+        XCTAssertFalse(store.config.spotlightBundleIDs.contains(custom))
+    }
 }

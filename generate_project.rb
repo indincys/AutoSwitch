@@ -9,9 +9,9 @@ project.root_object.attributes['LastSwiftUpdateCheck'] = '2620'
 project.root_object.attributes['LastUpgradeCheck'] = '2620'
 project.root_object.compatibility_version = 'Xcode 26.0'
 project.root_object.attributes['TargetAttributes'] = {}
-project.root_object.development_region = 'en'
+project.root_object.development_region = 'zh-Hans'
 project.root_object.has_scanned_for_encodings = '0'
-project.root_object.known_regions = %w[en Base]
+project.root_object.known_regions = ['zh-Hans', 'Base']
 project.root_object.minimized_project_reference_proxies = '0'
 project.root_object.preferred_project_object_version = '77'
 
@@ -111,8 +111,8 @@ app_target.package_product_dependencies << sparkle_dep
 
 common_app_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitch',
-  'MARKETING_VERSION' => '0.1.2',
-  'CURRENT_PROJECT_VERSION' => '3',
+  'MARKETING_VERSION' => '0.1.3',
+  'CURRENT_PROJECT_VERSION' => '4',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
@@ -144,8 +144,8 @@ app_target.resources_build_phase.add_file_reference(assets_ref)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
-  'MARKETING_VERSION' => '0.1.2',
-  'CURRENT_PROJECT_VERSION' => '3',
+  'MARKETING_VERSION' => '0.1.3',
+  'CURRENT_PROJECT_VERSION' => '4',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
