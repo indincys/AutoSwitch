@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>AutoSwitch Updates</title>
+    <title>AutoSwitch 更新</title>
     <link>https://raw.githubusercontent.com/indincys/AutoSwitch/main/appcast.xml</link>
-    <description>AutoSwitch release feed</description>
-    <language>en</language>
+    <description>AutoSwitch 更新源</description>
+    <language>zh-CN</language>
     <item>
-      <title>AutoSwitch 3</title>
-      <pubDate>Wed, 13 May 2026 18:16:09 +0000</pubDate>
-      <enclosure url="https://github.com/indincys/AutoSwitch/releases/download/v0.1.2/AutoSwitch.zip" sparkle:version="3" sparkle:shortVersionString="0.1.2" length="4494813" type="application/zip" sparkle:edSignature="UUgAjiyq93kAjNCDH41qwSDa07vTxRiImV+baoXCH+8BaI4qSRhDFDxToyb+sfzT9znYp7IOpHwMEEbu8clHCQ==" />
+      <title>AutoSwitch 4</title>
+      <pubDate>Mon, 18 May 2026 17:26:29 +0000</pubDate>
+      <enclosure url="https://github.com/indincys/AutoSwitch/releases/download/v0.1.3/AutoSwitch.zip" sparkle:version="4" sparkle:shortVersionString="0.1.3" length="2138558" type="application/zip" sparkle:edSignature="HGMYU5xkwqhTWyUMB9hicuBD3CRilq+uiA5rh0eMjbh8rftOh7lvlGqk2I9j+zzm0bBiu1DNOiXyo8z2uNBTBA==" />
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <link>https://github.com/indincys/AutoSwitch/releases/tag/v0.1.2</link>
+      <link>https://github.com/indincys/AutoSwitch/releases/tag/v0.1.3</link>
     </item>
   </channel>
 </rss>
