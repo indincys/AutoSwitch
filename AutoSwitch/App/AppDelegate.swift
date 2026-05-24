@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("didFinishLaunching")
         let state = AppState.shared
+        let launchContext = LaunchContext(notification: notification)
 
         if state.isTestEnvironment {
             logger.info("skipping launch in test environment")
@@ -18,7 +19,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         state.singleInstanceCoordinator.installObserver()
 
-        guard state.singleInstanceCoordinator.acquireLockOrSignalExistingInstance() else {
+        guard state.singleInstanceCoordinator.acquireLockOrSignalExistingInstance(
+            openSettingsInExistingInstance: launchContext.shouldSignalExistingInstanceToOpenSettings
+        ) else {
             logger.info("existing instance signaled; terminating")
             DispatchQueue.main.async { NSApp.terminate(nil) }
             return
@@ -30,8 +33,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             state.start()
         }
 
-        logger.info("showing settings window")
-        state.showSettingsWindow()
+        if launchContext.shouldShowSettingsWindowOnLaunch {
+            logger.info("showing settings window")
+            state.showSettingsWindow()
+        } else {
+            logger.info("launched as login item; keeping settings window hidden")
+        }
     }
 
     @MainActor

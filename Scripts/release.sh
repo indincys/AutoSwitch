@@ -20,6 +20,7 @@ APPCAST_OUTPUT="$ROOT_DIR/appcast.xml"
 APPCAST_TEMPLATE="$ROOT_DIR/Scripts/appcast.template.xml"
 SPARKLE_ROOT="$ROOT_DIR/DerivedData/SourcePackages/checkouts/Sparkle"
 SPARKLE_PROJECT="$SPARKLE_ROOT/Sparkle.xcodeproj"
+SPARKLE_ARTIFACT_TOOL_DIR="$ROOT_DIR/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin"
 SPARKLE_TOOL_SCHEMES=(generate_keys sign_update generate_appcast)
 SPARKLE_TOOL_DIR="$DERIVED_DATA/Build/Products/Release"
 
@@ -107,24 +108,25 @@ if [[ ! -d "$APP_PATH" ]]; then
   exit 1
 fi
 
-if [[ ! -d "$SPARKLE_PROJECT" ]]; then
-  echo "Sparkle project not found at $SPARKLE_PROJECT" >&2
-  exit 1
-fi
+if [[ -x "$SPARKLE_ARTIFACT_TOOL_DIR/sign_update" \
+  && -x "$SPARKLE_ARTIFACT_TOOL_DIR/generate_appcast" \
+  && -x "$SPARKLE_ARTIFACT_TOOL_DIR/generate_keys" ]]; then
+  SPARKLE_TOOL_DIR="$SPARKLE_ARTIFACT_TOOL_DIR"
+else
+  if [[ ! -d "$SPARKLE_PROJECT" ]]; then
+    echo "Sparkle project not found at $SPARKLE_PROJECT" >&2
+    echo "Sparkle CLI tools are also unavailable at $SPARKLE_ARTIFACT_TOOL_DIR." >&2
+    exit 1
+  fi
 
-for scheme in "${SPARKLE_TOOL_SCHEMES[@]}"; do
-  xcodebuild -project "$SPARKLE_PROJECT" -scheme "$scheme" -configuration Release -destination 'platform=macOS,arch=arm64' -derivedDataPath "$DERIVED_DATA" build
-done
+  for scheme in "${SPARKLE_TOOL_SCHEMES[@]}"; do
+    xcodebuild -project "$SPARKLE_PROJECT" -scheme "$scheme" -configuration Release -destination 'platform=macOS,arch=arm64' -derivedDataPath "$DERIVED_DATA" build
+  done
+fi
 
 SIGN_UPDATE="$SPARKLE_TOOL_DIR/sign_update"
 GENERATE_APPCAST="$SPARKLE_TOOL_DIR/generate_appcast"
 GENERATE_KEYS="$SPARKLE_TOOL_DIR/generate_keys"
-
-if [[ ! -x "$SIGN_UPDATE" || ! -x "$GENERATE_APPCAST" || ! -x "$GENERATE_KEYS" ]]; then
-  echo "Sparkle CLI tools are not available at $SPARKLE_TOOL_DIR." >&2
-  echo "The release script attempted to build generate_keys, sign_update, and generate_appcast first." >&2
-  exit 1
-fi
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "Dry run complete."

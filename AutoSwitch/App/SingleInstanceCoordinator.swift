@@ -45,7 +45,7 @@ final class SingleInstanceCoordinator: NSObject {
         }
     }
 
-    func acquireLockOrSignalExistingInstance() -> Bool {
+    func acquireLockOrSignalExistingInstance(openSettingsInExistingInstance: Bool = true) -> Bool {
         do {
             try FileManager.default.createDirectory(
                 at: lockURL.deletingLastPathComponent(),
@@ -62,8 +62,12 @@ final class SingleInstanceCoordinator: NSObject {
         }
 
         if flock(lockFileDescriptor, LOCK_EX | LOCK_NB) != 0 {
-            logger.info("existing instance detected, signaling open settings")
-            DistributedNotificationCenter.default().post(name: Self.openSettingsNotification, object: nil)
+            if openSettingsInExistingInstance {
+                logger.info("existing instance detected, signaling open settings")
+                DistributedNotificationCenter.default().post(name: Self.openSettingsNotification, object: nil)
+            } else {
+                logger.info("existing instance detected during silent launch")
+            }
             return false
         }
 

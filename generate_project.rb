@@ -39,6 +39,7 @@ app_files = %w[
   App/AutoSwitchApp.swift
   App/AppDelegate.swift
   App/AppState.swift
+  App/LaunchContext.swift
   App/SingleInstanceCoordinator.swift
   Config/AppRule.swift
   Config/BuiltinSpotlightBundles.swift
@@ -75,6 +76,7 @@ test_files = %w[
   SwitchSchedulerTests.swift
   ConfigStoreTests.swift
   AppStateWindowSizingTests.swift
+  LaunchContextTests.swift
   FocusCoordinatorTests.swift
   VisibilityDiffTests.swift
 ]
@@ -111,8 +113,8 @@ app_target.package_product_dependencies << sparkle_dep
 
 common_app_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitch',
-  'MARKETING_VERSION' => '0.1.3',
-  'CURRENT_PROJECT_VERSION' => '4',
+  'MARKETING_VERSION' => '0.1.4',
+  'CURRENT_PROJECT_VERSION' => '5',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
@@ -144,8 +146,8 @@ app_target.resources_build_phase.add_file_reference(assets_ref)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
-  'MARKETING_VERSION' => '0.1.3',
-  'CURRENT_PROJECT_VERSION' => '4',
+  'MARKETING_VERSION' => '0.1.4',
+  'CURRENT_PROJECT_VERSION' => '5',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
