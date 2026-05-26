@@ -2,6 +2,20 @@ import XCTest
 @testable import AutoSwitch
 
 final class ConfigStoreTests: XCTestCase {
+    func testNoOpUpdateDoesNotSaveOrNotify() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let url = directory.appendingPathComponent("config.json")
+        let store = ConfigStore(fileURL: url)
+        var changeCount = 0
+        store.onChange = { changeCount += 1 }
+
+        store.update { _ in }
+        store.setGlobalDefaultInputSourceID(nil)
+
+        XCTAssertEqual(changeCount, 0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+    }
+
     func testRoundTripPreservesRules() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let url = directory.appendingPathComponent("config.json")

@@ -23,40 +23,62 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
     private let logger = Logger(subsystem: "dev.autoswitch", category: "input-source")
     private var observerTokens: [NSObjectProtocol] = []
     private var inputSourceRefsByID: [String: TISInputSource] = [:]
+    private var inputSourcesByID: [String: InputSource] = [:]
 
     func startObservingSystemSourceChanges() {
         guard observerTokens.isEmpty else { return }
 
-        let names: [Notification.Name] = [
-            Notification.Name(kTISNotifyEnabledKeyboardInputSourcesChanged as String),
-            Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String)
-        ]
-
-        for name in names {
-            let token = DistributedNotificationCenter.default().addObserver(
-                forName: name,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                Task { @MainActor in
-                    self?.refreshInputSources()
-                }
+        let enabledSourcesToken = DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name(kTISNotifyEnabledKeyboardInputSourcesChanged as String),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshInputSources()
             }
-            observerTokens.append(token)
         }
+        observerTokens.append(enabledSourcesToken)
+
+        let selectedSourceToken = DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshCurrentInputSource()
+            }
+        }
+        observerTokens.append(selectedSourceToken)
     }
 
     func refreshInputSources() {
         let entries = enumerateKeyboardInputSources()
-        inputSourceRefsByID = Dictionary(uniqueKeysWithValues: entries.map { ($0.1.id, $0.0) })
-        availableInputSources = entries.map(\.1).sorted { lhs, rhs in
+        let sources = entries.map(\.1).sorted { lhs, rhs in
             lhs.localizedName.localizedCaseInsensitiveCompare(rhs.localizedName) == .orderedAscending
         }
-        currentInputSourceIDValue = currentKeyboardInputSourceID()
-        onChange?()
+        let currentID = currentKeyboardInputSourceID()
+
+        inputSourceRefsByID = Dictionary(uniqueKeysWithValues: entries.map { ($0.1.id, $0.0) })
+        inputSourcesByID = Dictionary(uniqueKeysWithValues: sources.map { ($0.id, $0) })
+
+        var didChange = false
+        if availableInputSources != sources {
+            availableInputSources = sources
+            didChange = true
+        }
+        if currentInputSourceIDValue != currentID {
+            currentInputSourceIDValue = currentID
+            didChange = true
+        }
+        if didChange {
+            onChange?()
+        }
     }
 
     func selectInputSource(id: String) -> Bool {
+        guard currentInputSourceIDValue != id else {
+            return true
+        }
         guard let source = inputSourceRefsByID[id] else {
             logger.error("missing input source for id \(id, privacy: .public)")
             return false
@@ -74,7 +96,14 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
     }
 
     func inputSource(with id: String) -> InputSource? {
-        availableInputSources.first(where: { $0.id == id })
+        inputSourcesByID[id]
+    }
+
+    private func refreshCurrentInputSource() {
+        let currentID = currentKeyboardInputSourceID()
+        guard currentInputSourceIDValue != currentID else { return }
+        currentInputSourceIDValue = currentID
+        onChange?()
     }
 
     private func enumerateKeyboardInputSources() -> [(TISInputSource, InputSource)] {

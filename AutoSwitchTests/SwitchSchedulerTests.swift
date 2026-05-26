@@ -26,4 +26,28 @@ final class SwitchSchedulerTests: XCTestCase {
         try? await Task.sleep(nanoseconds: 700_000_000)
         XCTAssertEqual(controller.selected.last, "zh")
     }
+
+    @MainActor
+    func testSchedulerSkipsWhenTargetAlreadySelected() async {
+        let controller = StubController()
+        controller.currentInputSourceIDValue = "abc"
+        let scheduler = SwitchScheduler(inputSourceController: controller)
+
+        scheduler.schedule(SwitchDecision(targetInputSourceID: "abc", reason: "test", sourceBundleID: nil, isPanelContext: false))
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
+        XCTAssertTrue(controller.selected.isEmpty)
+    }
+
+    @MainActor
+    func testSchedulerCoalescesDuplicatePendingTarget() async {
+        let controller = StubController()
+        let scheduler = SwitchScheduler(inputSourceController: controller)
+
+        scheduler.schedule(SwitchDecision(targetInputSourceID: "abc", reason: "first", sourceBundleID: nil, isPanelContext: false))
+        scheduler.schedule(SwitchDecision(targetInputSourceID: "abc", reason: "duplicate", sourceBundleID: "com.apple.Terminal", isPanelContext: false))
+        try? await Task.sleep(nanoseconds: 700_000_000)
+
+        XCTAssertEqual(controller.selected, ["abc"])
+    }
 }

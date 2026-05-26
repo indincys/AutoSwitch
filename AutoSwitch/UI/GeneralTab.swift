@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GeneralTab: View {
     @EnvironmentObject private var appState: AppState
+    @State private var documentSwitchPreference: Bool?
 
     var body: some View {
         Form {
@@ -13,7 +14,7 @@ struct GeneralTab: View {
                     Label("配置错误：\(error)", systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                 }
-                if DocumentSwitchChecker.currentPreference() == true {
+                if documentSwitchPreference == true {
                     Label("macOS 已开启“按文稿切换输入法”。建议在键盘设置中关闭，避免系统覆盖 AutoSwitch 的切换结果。",
                           systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
@@ -45,6 +46,9 @@ struct GeneralTab: View {
             }
         }
         .formStyle(.grouped)
+        .task {
+            documentSwitchPreference = DocumentSwitchChecker.currentPreference()
+        }
     }
 }
 

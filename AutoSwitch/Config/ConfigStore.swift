@@ -27,6 +27,7 @@ final class ConfigStore: ObservableObject {
     func update(_ mutate: (inout Config) -> Void) {
         var next = config
         mutate(&next)
+        guard next != config else { return }
         next.updatedAt = Date()
         config = next
         save()

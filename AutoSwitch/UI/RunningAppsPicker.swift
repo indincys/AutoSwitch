@@ -7,6 +7,8 @@ struct RuleToolbar<AddContent: View>: View {
     let searchPrompt: String
     let addLabel: String
     let addAction: () -> Void
+    var selectAllLabel: String?
+    var selectAllAction: (() -> Void)?
     @Binding var isAddPresented: Bool
     @ViewBuilder var addContent: () -> AddContent
 
@@ -18,6 +20,13 @@ struct RuleToolbar<AddContent: View>: View {
             .controlSize(.regular)
             .popover(isPresented: $isAddPresented, arrowEdge: .top) {
                 addContent()
+            }
+
+            if let selectAllLabel, let selectAllAction {
+                Button(action: selectAllAction) {
+                    Label(selectAllLabel, systemImage: "checklist")
+                }
+                .controlSize(.regular)
             }
 
             Spacer()
@@ -50,6 +59,7 @@ struct RuleToolbar<AddContent: View>: View {
 struct AppIcon: View {
     let icon: NSImage?
     var fallbackSystemImage: String = "app.dashed"
+    var size: CGFloat = 28
 
     var body: some View {
         Group {
@@ -65,7 +75,52 @@ struct AppIcon: View {
                     .padding(4)
             }
         }
-        .frame(width: 28, height: 28)
+        .frame(width: size, height: size)
+    }
+}
+
+@MainActor
+final class AppIconCache {
+    static let shared = AppIconCache()
+
+    private var iconsByPath: [String: NSImage] = [:]
+    private var pathsByBundleID: [String: String] = [:]
+    private var missingPaths: Set<String> = []
+    private var missingBundleIDs: Set<String> = []
+
+    func icon(forFile path: String) -> NSImage? {
+        if let icon = iconsByPath[path] {
+            return icon
+        }
+        guard !missingPaths.contains(path), FileManager.default.fileExists(atPath: path) else {
+            missingPaths.insert(path)
+            return nil
+        }
+
+        let icon = NSWorkspace.shared.icon(forFile: path)
+        iconsByPath[path] = icon
+        return icon
+    }
+
+    func icon(forApplication bundleID: String, lastSeenPath: String?) -> NSImage? {
+        if let lastSeenPath, let icon = icon(forFile: lastSeenPath) {
+            return icon
+        }
+
+        if let path = pathsByBundleID[bundleID] {
+            return icon(forFile: path)
+        }
+        guard !missingBundleIDs.contains(bundleID) else {
+            return nil
+        }
+
+        guard let bundleURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
+            missingBundleIDs.insert(bundleID)
+            return nil
+        }
+
+        pathsByBundleID[bundleID] = bundleURL.path
+        return icon(forFile: bundleURL.path)
     }
 }
 
@@ -405,8 +460,8 @@ private struct AppRowItem: View {
     let isSelected: Bool
     let onToggle: () -> Void
 
-    private var icon: NSImage {
-        NSWorkspace.shared.icon(forFile: app.bundleURL.path)
+    private var icon: NSImage? {
+        AppIconCache.shared.icon(forFile: app.bundleURL.path)
     }
 
     var body: some View {
@@ -416,9 +471,7 @@ private struct AppRowItem: View {
                     .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                     .font(.system(size: 15))
                 ZStack(alignment: .bottomTrailing) {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 22, height: 22)
+                    AppIcon(icon: icon, size: 22)
                     if isRunning {
                         Circle()
                             .fill(Color.green)
@@ -456,7 +509,7 @@ private struct ManualEntryRow: View {
 
     private var icon: NSImage? {
         guard let path = item.path else { return nil }
-        return NSWorkspace.shared.icon(forFile: path)
+        return AppIconCache.shared.icon(forFile: path)
     }
 
     var body: some View {

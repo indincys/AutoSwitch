@@ -74,4 +74,23 @@ final class RuleEngineTests: XCTestCase {
         XCTAssertEqual(decision?.targetInputSourceID, "english")
         XCTAssertEqual(decision?.reason, "ascii fallback")
     }
+
+    func testDisabledRuleTargetFallsBackToSelectableSource() {
+        let engine = RuleEngine()
+        let config = Config(
+            globalDefaultInputSourceID: nil,
+            appRules: [
+                AppRule(bundleID: "com.apple.Terminal", displayName: "Terminal", inputSourceID: "disabled", enabled: true, lastSeenPath: nil)
+            ]
+        )
+        let sources = [
+            InputSource(id: "disabled", localizedName: "Disabled", category: "keyboard", languages: ["en"], kind: .ascii, isEnabled: false, isSelectCapable: true),
+            InputSource(id: "system", localizedName: "System", category: "keyboard", languages: [], kind: .system, isEnabled: true, isSelectCapable: true)
+        ]
+
+        let decision = engine.resolve(bundleID: "com.apple.Terminal", isPanelContext: false, config: config, availableInputSources: sources)
+
+        XCTAssertEqual(decision?.targetInputSourceID, "system")
+        XCTAssertEqual(decision?.reason, "system fallback")
+    }
 }
