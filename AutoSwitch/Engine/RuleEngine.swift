@@ -5,9 +5,38 @@ struct RuleEngine {
         bundleID: String?,
         isPanelContext: Bool,
         config: Config,
-        availableInputSources: [InputSource]
+        availableInputSources: [InputSource],
+        shellPromptDetected: Bool = false,
+        tuiPromptDetected: Bool = false
     ) -> SwitchDecision? {
         let sourceLookup = InputSourceLookup(availableInputSources)
+
+        // TUI prompt overrides shell prompt and app rules: when we see Claude
+        // Code / Codex's TUI input box, force Chinese regardless of what the
+        // app rule says.
+        if tuiPromptDetected, config.shellPromptDetectionEnabled, !isPanelContext {
+            if let chinese = sourceLookup.chineseFallback(preferring: config.globalDefaultInputSourceID) {
+                return SwitchDecision(
+                    targetInputSourceID: chinese.id,
+                    reason: "tui prompt detected",
+                    sourceBundleID: bundleID,
+                    isPanelContext: false
+                )
+            }
+            // No Chinese source — fall through.
+        }
+
+        if shellPromptDetected, config.shellPromptDetectionEnabled, !isPanelContext {
+            if let ascii = sourceLookup.asciiFallback {
+                return SwitchDecision(
+                    targetInputSourceID: ascii.id,
+                    reason: "shell prompt detected",
+                    sourceBundleID: bundleID,
+                    isPanelContext: false
+                )
+            }
+            // No ASCII source available — fall through to normal resolution.
+        }
 
         if isPanelContext, let bundleID {
             if let rule = config.spotlightRules.first(where: { $0.bundleID == bundleID && $0.enabled }) {
@@ -57,6 +86,7 @@ struct RuleEngine {
 
 private struct InputSourceLookup {
     private let sourcesByID: [String: InputSource]
+    private let allSources: [InputSource]
     let asciiFallback: InputSource?
     let systemFallback: InputSource?
     let firstSource: InputSource?
@@ -67,6 +97,7 @@ private struct InputSourceLookup {
             sourcesByID[source.id] = source
         }
         self.sourcesByID = sourcesByID
+        self.allSources = sources
         asciiFallback = sources.first { $0.kind == .ascii && $0.isEnabled && $0.isSelectCapable }
         systemFallback = sources.first { $0.kind == .system && $0.isEnabled && $0.isSelectCapable }
         firstSource = sources.first
@@ -78,5 +109,19 @@ private struct InputSourceLookup {
         }
         guard source.isEnabled, source.isSelectCapable else { return nil }
         return candidateID
+    }
+
+    /// First selectable Chinese source, preferring the user's configured global
+    /// default if it's Chinese (so we honor their preferred Pinyin/Wubi/etc.
+    /// over an arbitrary first match).
+    func chineseFallback(preferring preferredID: String?) -> InputSource? {
+        if let preferredID,
+           let preferred = sourcesByID[preferredID],
+           preferred.kind == .chinese,
+           preferred.isEnabled,
+           preferred.isSelectCapable {
+            return preferred
+        }
+        return allSources.first { $0.kind == .chinese && $0.isEnabled && $0.isSelectCapable }
     }
 }

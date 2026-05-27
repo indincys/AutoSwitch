@@ -7,6 +7,10 @@ import os.log
 protocol InputSourceControlling: AnyObject {
     var availableInputSources: [InputSource] { get }
     var currentInputSourceIDValue: String? { get }
+    /// Fires whenever the system input source changes *not* as a result of our
+    /// own `selectInputSource` call — i.e., the user manually switched (Shift,
+    /// Ctrl-Space, menu, etc.). Carries the previous and new source IDs.
+    var onUserInitiatedChange: ((_ previousID: String?, _ currentID: String?) -> Void)? { get set }
     func startObservingSystemSourceChanges()
     func refreshInputSources()
     func selectInputSource(id: String) -> Bool
@@ -19,6 +23,7 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
     @Published private(set) var currentInputSourceIDValue: String?
 
     var onChange: (() -> Void)?
+    var onUserInitiatedChange: ((_ previousID: String?, _ currentID: String?) -> Void)?
 
     private let logger = Logger(subsystem: "dev.autoswitch", category: "input-source")
     private var observerTokens: [NSObjectProtocol] = []
@@ -102,8 +107,15 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
     private func refreshCurrentInputSource() {
         let currentID = currentKeyboardInputSourceID()
         guard currentInputSourceIDValue != currentID else { return }
+        // We only get here via the system notification path (i.e., the user
+        // changed sources externally — Shift toggle, Ctrl-Space, menu pick,
+        // etc.). When *we* drive a change via `selectInputSource`, the value
+        // is synchronously updated in that method, so this guard short-circuits
+        // and `onUserInitiatedChange` does not fire.
+        let previousID = currentInputSourceIDValue
         currentInputSourceIDValue = currentID
         onChange?()
+        onUserInitiatedChange?(previousID, currentID)
     }
 
     private func enumerateKeyboardInputSources() -> [(TISInputSource, InputSource)] {

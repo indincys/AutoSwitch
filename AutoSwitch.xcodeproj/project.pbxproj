@@ -7,196 +7,213 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0183E56707E1937ADC8B9EB6 /* InputSourceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEEC2D4A20F4EB68E929CE5 /* InputSourceController.swift */; };
-		01DA6314384ABCC2DE8676F5 /* AutoSwitchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91385310E58F930EE00ED2C6 /* AutoSwitchApp.swift */; };
-		02E8D2B2B4B845C4A8D2F603 /* LaunchContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8BA71DF0B54FA69D1391A0 /* LaunchContext.swift */; };
-		04B473F9C856BB3D9A10E7AE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 413E6E260390BFCD35981689 /* Cocoa.framework */; };
-		05A1817E0F82A88EF184F1D5 /* SystemActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5511293CB6FF69FCC4945EE4 /* SystemActionButton.swift */; };
-		1248221C3E4BCF2CF6F10A9D /* SpotlightPanelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA72BC8A7F82367519EC7FF /* SpotlightPanelMonitor.swift */; };
-		14E8BF43C06EFE2A3F2A22DF /* SpotlightTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D6863DB82078B44FF77862 /* SpotlightTab.swift */; };
-		1C397EC063EAC45A64E16D52 /* InputSourceClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222A9B9D585C08BAF86575CF /* InputSourceClassifier.swift */; };
-		1EF5C0ECF009E3C32306D22D /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8946AA29CA5EAEE5398D3AF5 /* AppKit.framework */; };
-		238B393E89A35605D4BB65D1 /* SettingsScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5FE517B6BD96CDA4ED0DA8 /* SettingsScene.swift */; };
-		377586CF03B071BE5A271E5D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 413E6E260390BFCD35981689 /* Cocoa.framework */; };
-		40DCB54DD4F6558DD5788A7D /* RuleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FD24BF80FD348E5939B416 /* RuleEngineTests.swift */; };
-		41074FDFBC48942EB1A1D761 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 095C6E9CB2C1FA3366A34633 /* SwiftUI.framework */; };
-		4873FCC0A85BD606F8EE0BA0 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EABCA2DCE22797FDB862104 /* ApplicationServices.framework */; };
-		4C065005954EC90BFDC3D4F9 /* SingleInstanceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374A18D6A8F988BE20B4AE68 /* SingleInstanceCoordinator.swift */; };
-		4CB73EC0F2441DE9321DF671 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED96134F5FFB9BC91F5F10E1 /* Foundation.framework */; };
-		50C5CC7138704A0DBD35296A /* LaunchContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E709EFC2D8A0474FA6A48F22 /* LaunchContextTests.swift */; };
-		5817423C3691B075875D2BF3 /* FocusCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663382C0243E990DA5FA1259 /* FocusCoordinatorTests.swift */; };
-		5BF217AB7AA4CBFDBD327245 /* ConfigStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A76EA3FB4366AE828D28C3 /* ConfigStoreTests.swift */; };
-		6222D68DD77B8388BF0613EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6379D3943C7D5BD9FF5CFD51 /* Assets.xcassets */; };
-		63A38F210D5AA0813E5A1C26 /* AppRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFDF9EF854E15F317807D2E /* AppRule.swift */; };
-		673845F3EF106E0317C1B6E1 /* RunningAppsPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE4BB63982EC640A0FCB601 /* RunningAppsPicker.swift */; };
-		6A4904672333EF96B831BD7D /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D6144D12CF86BA6ABD3BD1A /* ServiceManagement.framework */; };
-		6FAEF44C4CFAA98080CA0D44 /* InputSourcePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D879BB4FCDB6CED9ADEC316 /* InputSourcePicker.swift */; };
-		74CD51586C23CBC4F4436443 /* VisibilityDiffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CC6CFCAFBEB6497C2336A21 /* VisibilityDiffTests.swift */; };
-		769A18DDE94D81DFFD39C02C /* AppStateWindowSizingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 742675C0FA507B123101DD69 /* AppStateWindowSizingTests.swift */; };
-		78B918B6D5F8430CBE998526 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA0D050C561D4EED2EC3614 /* LoginItemManager.swift */; };
-		79287D3CD3F91CEB17B30E67 /* ConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D689282E624F503C6256305 /* ConfigStore.swift */; };
-		792B91341CA10C9AD02B1C64 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 326F469A65AF26B5C962F6CD /* Carbon.framework */; };
-		7B1922257C13F37B41BB1105 /* SwitchSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99C118134B8BE3BF0C3D8A0 /* SwitchSchedulerTests.swift */; };
-		7BF0A961D8E24C63D8EF915A /* SystemSettingsLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E022C63046E86A6424C01DF /* SystemSettingsLinks.swift */; };
-		82AC301C132AAD0E6C766154 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 028EB4E7D1E254B69BBD0C0A /* XCTest.framework */; };
-		8EFEB333E3FCCDA687A0DB9A /* SwitchScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A751BFB4438F71BEBEB908 /* SwitchScheduler.swift */; };
-		98F94B5CACB6623D8AFE13A9 /* FocusCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C0FA409AE349D21B336994 /* FocusCoordinator.swift */; };
-		9E455F50E959BD556EB50AD2 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC304218C9526AA894C8DCC7 /* Config.swift */; };
-		9F6C2E2C62D3A5AE4D669D8C /* FocusEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312C2979EC167C117155531A /* FocusEvent.swift */; };
-		A6F5292DB5E56D2751B868FB /* AppRulesTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F652320228B202FCFABED59 /* AppRulesTab.swift */; };
-		A95B4F865BE0C4F0F4026449 /* UpdaterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B84A6F40EC507F28424E3C04 /* UpdaterController.swift */; };
-		C2C7DD2CF58FDD4020F2C8BA /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B51956A02B29DCD5347332F /* InputSource.swift */; };
-		C447FD07C600C5955B71BBD4 /* RuleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F0F076860F6BBF2B93044E /* RuleEngine.swift */; };
-		C4598AEC7D4B0C1272643AEA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED96134F5FFB9BC91F5F10E1 /* Foundation.framework */; };
-		D63A968D34BE40BF19292B16 /* BuiltinSpotlightBundles.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDBC9DE415585BB36265297F /* BuiltinSpotlightBundles.swift */; };
-		DC72647C9EBBF340D3F1DAF3 /* GeneralTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8393DB55F9073B5F6B95E46B /* GeneralTab.swift */; };
-		E41BACF37B6B6FE748A15050 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F297FE26852B2212A54B6FA4 /* AppState.swift */; };
-		E708C1A368B0192024515B45 /* DocumentSwitchChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2393D8CD0EC974B26E0B0AB4 /* DocumentSwitchChecker.swift */; };
-		EAE25801EEF0B1A26AF2A8AB /* VisibilityDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = C058CEA8AAD6DBD42700AA69 /* VisibilityDiff.swift */; };
-		ED81FD80981298C26D128DC4 /* AppActivationMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 609C1984994A678B972CA2DD /* AppActivationMonitor.swift */; };
-		EF26171B13F2EB10ADC3420F /* StatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC85586C5A863C5FBB2DE137 /* StatusPill.swift */; };
-		FAC94A2CF91F6F1296783BE9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32FED723F89596E6F69EFF9A /* AppDelegate.swift */; };
-		FCE7F9DF58C1BC5F614C5BCB /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBFD2B0327DABDADC894257 /* PermissionsManager.swift */; };
-		FDC78C32DC2626F149DA0CB8 /* LockScreenMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F8E7161E911E2D2C333092 /* LockScreenMonitor.swift */; };
+		0007E358F55644ABC8DF2427 /* AppRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79740E021E6F5B5CF77BF8DF /* AppRule.swift */; };
+		05413CC23EE8140D64B036E0 /* VisibilityDiffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0826661EE1DAA2413A4061 /* VisibilityDiffTests.swift */; };
+		065FB634E9B80D5E4872B6C3 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4283813F7BC25A6D3ADBD185 /* Cocoa.framework */; };
+		0FA40A872D3B5C4E086435B3 /* LockScreenMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48FDC6D4751C97B90AD61555 /* LockScreenMonitor.swift */; };
+		0FA47583E259C86D47BD1F51 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4283813F7BC25A6D3ADBD185 /* Cocoa.framework */; };
+		1222110BC2E9506DF93EAFA7 /* SingleInstanceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410B0A85803FF6EF19CA68DF /* SingleInstanceCoordinator.swift */; };
+		194B92D7DF8A4BB812EC8C50 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0093D0FE76AD7CFA285E101 /* Foundation.framework */; };
+		195AD02249DFC3B3FCCD38CA /* FocusCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADE87756A9F1415A4294C71 /* FocusCoordinatorTests.swift */; };
+		26EB7172CE36830E8C5A97B7 /* ConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778E00982524DB169FE8B39A /* ConfigStore.swift */; };
+		2A868169202322FA04AA3766 /* SettingsScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB79C1259EE9E27D928A84E /* SettingsScene.swift */; };
+		3100E7D95260505C0A07BB00 /* SystemActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5AA583E631CBE5DB935C46 /* SystemActionButton.swift */; };
+		31CF53D633A92CB7B7ABFFDB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94DA76A78D0CC685C7BEB40C /* AppKit.framework */; };
+		366A1D86FFE6EFC948B969CA /* DocumentSwitchChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048928F5D346C2E7A9E00674 /* DocumentSwitchChecker.swift */; };
+		3F14A777CBAFEB966BEF0FF0 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B45D8E99164E85BD59FA9882 /* Carbon.framework */; };
+		454F6153F7DD0CAD18CC178D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 60AAFDB62DCC9BE03161CF4A /* Assets.xcassets */; };
+		45F9140CA255B49B2D20D409 /* SwitchSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFD7AD7F92193232CC9F7C6 /* SwitchSchedulerTests.swift */; };
+		478EF8F8E72754E67CB222A2 /* FocusedElementMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF271A64234242525919A46A /* FocusedElementMonitor.swift */; };
+		4CEBC2FB3F5EE2AFCC115F75 /* RunningAppsPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26EBF339E8E765281E8CBEEE /* RunningAppsPicker.swift */; };
+		54758322A36E8D9522FF243A /* SpotlightTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18C5754177A855D523171C42 /* SpotlightTab.swift */; };
+		57717760AB7AD66385165370 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BA0243C0E9C79CF90D1C246 /* ServiceManagement.framework */; };
+		59B20D846D1884D17C2F6C01 /* SwitchScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22A928F9F88572B4704F552 /* SwitchScheduler.swift */; };
+		5B157F74E05B78C36ACDFEEA /* InputSourceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96778A3534044B54152F7086 /* InputSourceController.swift */; };
+		5C8E62D76B3A295A960F8F06 /* FocusCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1127E8AE9B22A25D6AE65F7 /* FocusCoordinator.swift */; };
+		62BB4BDD30F4F7AB0FF9D76C /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75CB414FD9349290565D3F34 /* AppState.swift */; };
+		66436916228932F7CA0A5E8F /* SlashTriggerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3192CF1594F15B742A3A86B1 /* SlashTriggerMonitor.swift */; };
+		66BE1CA300662D02ABAAF671 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B465374C285798EEF8CDF83B /* LoginItemManager.swift */; };
+		6E4D4B48068E3482B016F810 /* AppStateWindowSizingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF53DEED7FE16AF59674335 /* AppStateWindowSizingTests.swift */; };
+		6E97B2FE0F2A11240439EB6D /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0F024BDD0B4B23FC0C1EB86 /* ApplicationServices.framework */; };
+		71C144C192323314C7AA34C7 /* InputSourcePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7E9072D5FC5B082F554FAD /* InputSourcePicker.swift */; };
+		71FAFD3802EB85892BB969F9 /* StatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3CE11A9E72B123DC8441FA7 /* StatusPill.swift */; };
+		75A27086D9AC4DC9082F29C2 /* ShellPromptDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B9A82DEFDAD39930D8EAAC4 /* ShellPromptDetectorTests.swift */; };
+		7D8F4BFA9F92B62BDC2437C6 /* LaunchContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 128AB2E0E7290681D53CA49D /* LaunchContext.swift */; };
+		81E735B37A7F7C67A3654FE5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C74032FC273FD5A904C9EE8 /* Config.swift */; };
+		9066061FF6657925342EAD1D /* VisibilityDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8CE7FDD832549E3D7A29ADB /* VisibilityDiff.swift */; };
+		A07FDF8F4A5A6E146285A57E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0093D0FE76AD7CFA285E101 /* Foundation.framework */; };
+		A4BFCEB7C24FCE08450E9F02 /* LaunchContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEFAACE50CC8BB574F1BE86 /* LaunchContextTests.swift */; };
+		A6DB1AA60F141D6158804D41 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD816BE922A0334DBBAA6B3A /* XCTest.framework */; };
+		A9FC1E63A713DBE35827B49D /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC87CE93C0A9446E46093696 /* StatusBarController.swift */; };
+		B50F84ACE151CBCF629964E5 /* ShellPromptDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999B9FB89B42C8B79EBD2B09 /* ShellPromptDetector.swift */; };
+		B527EFC4D55849086BC701AF /* FocusEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FDCDF9C1277FDBE8D3F980 /* FocusEvent.swift */; };
+		C25D76891E26132710622D5A /* InputSourceClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05EBB7468F129C1FF08AB8A /* InputSourceClassifier.swift */; };
+		C3F6AB70D6860E9383D56B46 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F177F3E502EDFE0E43ADF06 /* AppDelegate.swift */; };
+		CBA172DD699AFBF6648C7596 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788E588B4B98B107C423F3EA /* InputSource.swift */; };
+		D2F795960299D25061DC4966 /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AC807379B997AA099A6FA8 /* PermissionsManager.swift */; };
+		D4AFB3A495D1BFDDF3ED9F73 /* GeneralTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1600D5F5500C131ED25CE118 /* GeneralTab.swift */; };
+		DDEF0EF92DB8F6B0C0CEAC06 /* ConfigStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D21152157219EE4C1485D6A /* ConfigStoreTests.swift */; };
+		DF1F42962C36E45A2FDE46C2 /* UpdaterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8AE3361C88D819CADFFBB5 /* UpdaterController.swift */; };
+		E4687F7C2255719666195D12 /* RuleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF46DA8E1DFB573C26A73FE /* RuleEngine.swift */; };
+		E4EA88BF59AA108337182490 /* AppRulesTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79AC2882EB2852580FDCB184 /* AppRulesTab.swift */; };
+		E50D92C17B47772D4278C7B0 /* SystemSettingsLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE22750C8919AE8457107CED /* SystemSettingsLinks.swift */; };
+		EACCC4185220F0194607870A /* SpotlightPanelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F8EC56F76AE01EAB3C8DF3 /* SpotlightPanelMonitor.swift */; };
+		ED305AD84BA246BEAF1883F2 /* AppActivationMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68668441313C5982537D3D4 /* AppActivationMonitor.swift */; };
+		F17E27F61B10ADCE82B22126 /* BuiltinSpotlightBundles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CE7DB71559F87971F0A0A7 /* BuiltinSpotlightBundles.swift */; };
+		F594AAA368957214D1B95340 /* TransientEnglishMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AF80AB8FE1E04F47430A43 /* TransientEnglishMonitor.swift */; };
+		F5C5B72ED8BEA5FAF6C486B1 /* RuleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC6996909CF5C28E96077032 /* RuleEngineTests.swift */; };
+		FAE1B3D75E11FF82012588BF /* AutoSwitchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BCB4D47688D9859BD2D3274 /* AutoSwitchApp.swift */; };
+		FBAD90D3B4E58513E060DD6A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DE410769F2B2BC033DFBD1F /* SwiftUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		DDA957AF3316BE0857CDCB86 /* PBXContainerItemProxy */ = {
+		C732C4ECE4271C6FD7E6EA31 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = FA5A6D16AF7D63654B9220C1 /* Project object */;
+			containerPortal = EAE6159FDF81B52C7156E8D9 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = E0E34E8EEB2E5E31C6CD106F;
+			remoteGlobalIDString = AC2C8BD4029D8A16B4315688;
 			remoteInfo = AutoSwitch;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		028EB4E7D1E254B69BBD0C0A /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		095C6E9CB2C1FA3366A34633 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/SwiftUI.framework; sourceTree = DEVELOPER_DIR; };
-		1CA0D050C561D4EED2EC3614 /* LoginItemManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginItemManager.swift; path = System/LoginItemManager.swift; sourceTree = "<group>"; };
-		222A9B9D585C08BAF86575CF /* InputSourceClassifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSourceClassifier.swift; path = InputSource/InputSourceClassifier.swift; sourceTree = "<group>"; };
-		2393D8CD0EC974B26E0B0AB4 /* DocumentSwitchChecker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DocumentSwitchChecker.swift; path = System/DocumentSwitchChecker.swift; sourceTree = "<group>"; };
-		2FFDF9EF854E15F317807D2E /* AppRule.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppRule.swift; path = Config/AppRule.swift; sourceTree = "<group>"; };
-		312C2979EC167C117155531A /* FocusEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusEvent.swift; path = Monitor/FocusEvent.swift; sourceTree = "<group>"; };
-		326F469A65AF26B5C962F6CD /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Carbon.framework; sourceTree = DEVELOPER_DIR; };
-		32FED723F89596E6F69EFF9A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = App/AppDelegate.swift; sourceTree = "<group>"; };
-		374A18D6A8F988BE20B4AE68 /* SingleInstanceCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SingleInstanceCoordinator.swift; path = App/SingleInstanceCoordinator.swift; sourceTree = "<group>"; };
-		3B51956A02B29DCD5347332F /* InputSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSource.swift; path = InputSource/InputSource.swift; sourceTree = "<group>"; };
-		3BE4BB63982EC640A0FCB601 /* RunningAppsPicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunningAppsPicker.swift; path = UI/RunningAppsPicker.swift; sourceTree = "<group>"; };
-		3D689282E624F503C6256305 /* ConfigStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigStore.swift; path = Config/ConfigStore.swift; sourceTree = "<group>"; };
-		3D879BB4FCDB6CED9ADEC316 /* InputSourcePicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSourcePicker.swift; path = UI/Components/InputSourcePicker.swift; sourceTree = "<group>"; };
-		413E6E260390BFCD35981689 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		4BA72BC8A7F82367519EC7FF /* SpotlightPanelMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpotlightPanelMonitor.swift; path = Monitor/SpotlightPanelMonitor.swift; sourceTree = "<group>"; };
-		4F652320228B202FCFABED59 /* AppRulesTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppRulesTab.swift; path = UI/AppRulesTab.swift; sourceTree = "<group>"; };
-		5511293CB6FF69FCC4945EE4 /* SystemActionButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SystemActionButton.swift; path = UI/Components/SystemActionButton.swift; sourceTree = "<group>"; };
-		5D6144D12CF86BA6ABD3BD1A /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
-		609C1984994A678B972CA2DD /* AppActivationMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppActivationMonitor.swift; path = Monitor/AppActivationMonitor.swift; sourceTree = "<group>"; };
-		6379D3943C7D5BD9FF5CFD51 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		663382C0243E990DA5FA1259 /* FocusCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FocusCoordinatorTests.swift; sourceTree = "<group>"; };
-		742675C0FA507B123101DD69 /* AppStateWindowSizingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppStateWindowSizingTests.swift; sourceTree = "<group>"; };
-		8393DB55F9073B5F6B95E46B /* GeneralTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeneralTab.swift; path = UI/GeneralTab.swift; sourceTree = "<group>"; };
-		88FD24BF80FD348E5939B416 /* RuleEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
-		8946AA29CA5EAEE5398D3AF5 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = DEVELOPER_DIR; };
-		8CC6CFCAFBEB6497C2336A21 /* VisibilityDiffTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VisibilityDiffTests.swift; sourceTree = "<group>"; };
-		8EABCA2DCE22797FDB862104 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/ApplicationServices.framework; sourceTree = DEVELOPER_DIR; };
-		91385310E58F930EE00ED2C6 /* AutoSwitchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoSwitchApp.swift; path = App/AutoSwitchApp.swift; sourceTree = "<group>"; };
-		93D6863DB82078B44FF77862 /* SpotlightTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpotlightTab.swift; path = UI/SpotlightTab.swift; sourceTree = "<group>"; };
-		99F8B95458948C99895B355C /* AutoSwitch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoSwitch.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A8BA71DF0B54FA69D1391A0 /* LaunchContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LaunchContext.swift; path = App/LaunchContext.swift; sourceTree = "<group>"; };
-		9C2E816432E4ADF6D0775E04 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = App/Info.plist; sourceTree = "<group>"; };
-		9E022C63046E86A6424C01DF /* SystemSettingsLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SystemSettingsLinks.swift; path = System/SystemSettingsLinks.swift; sourceTree = "<group>"; };
-		A5F0F076860F6BBF2B93044E /* RuleEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RuleEngine.swift; path = Engine/RuleEngine.swift; sourceTree = "<group>"; };
-		A5FE3DB49FA672C2A1744945 /* AutoSwitchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoSwitchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		AC85586C5A863C5FBB2DE137 /* StatusPill.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusPill.swift; path = UI/Components/StatusPill.swift; sourceTree = "<group>"; };
-		B84A6F40EC507F28424E3C04 /* UpdaterController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpdaterController.swift; path = Update/UpdaterController.swift; sourceTree = "<group>"; };
-		C058CEA8AAD6DBD42700AA69 /* VisibilityDiff.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VisibilityDiff.swift; path = Monitor/VisibilityDiff.swift; sourceTree = "<group>"; };
-		C99C118134B8BE3BF0C3D8A0 /* SwitchSchedulerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwitchSchedulerTests.swift; sourceTree = "<group>"; };
-		C9C0FA409AE349D21B336994 /* FocusCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusCoordinator.swift; path = Engine/FocusCoordinator.swift; sourceTree = "<group>"; };
-		CD5FE517B6BD96CDA4ED0DA8 /* SettingsScene.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsScene.swift; path = UI/SettingsScene.swift; sourceTree = "<group>"; };
-		CFBFD2B0327DABDADC894257 /* PermissionsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PermissionsManager.swift; path = System/PermissionsManager.swift; sourceTree = "<group>"; };
-		E8F8E7161E911E2D2C333092 /* LockScreenMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LockScreenMonitor.swift; path = Monitor/LockScreenMonitor.swift; sourceTree = "<group>"; };
-		E709EFC2D8A0474FA6A48F22 /* LaunchContextTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchContextTests.swift; sourceTree = "<group>"; };
-		EC304218C9526AA894C8DCC7 /* Config.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Config.swift; path = Config/Config.swift; sourceTree = "<group>"; };
-		ED96134F5FFB9BC91F5F10E1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		F0A76EA3FB4366AE828D28C3 /* ConfigStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigStoreTests.swift; sourceTree = "<group>"; };
-		F1A751BFB4438F71BEBEB908 /* SwitchScheduler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SwitchScheduler.swift; path = Engine/SwitchScheduler.swift; sourceTree = "<group>"; };
-		F297FE26852B2212A54B6FA4 /* AppState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = App/AppState.swift; sourceTree = "<group>"; };
-		FDBC9DE415585BB36265297F /* BuiltinSpotlightBundles.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BuiltinSpotlightBundles.swift; path = Config/BuiltinSpotlightBundles.swift; sourceTree = "<group>"; };
-		FDEEC2D4A20F4EB68E929CE5 /* InputSourceController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSourceController.swift; path = InputSource/InputSourceController.swift; sourceTree = "<group>"; };
+		048928F5D346C2E7A9E00674 /* DocumentSwitchChecker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DocumentSwitchChecker.swift; path = System/DocumentSwitchChecker.swift; sourceTree = "<group>"; };
+		07CE7DB71559F87971F0A0A7 /* BuiltinSpotlightBundles.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BuiltinSpotlightBundles.swift; path = Config/BuiltinSpotlightBundles.swift; sourceTree = "<group>"; };
+		0B9A82DEFDAD39930D8EAAC4 /* ShellPromptDetectorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShellPromptDetectorTests.swift; sourceTree = "<group>"; };
+		0BCB4D47688D9859BD2D3274 /* AutoSwitchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoSwitchApp.swift; path = App/AutoSwitchApp.swift; sourceTree = "<group>"; };
+		11C8C2435E8C2AA82B2D552E /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = App/Info.plist; sourceTree = "<group>"; };
+		128AB2E0E7290681D53CA49D /* LaunchContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LaunchContext.swift; path = App/LaunchContext.swift; sourceTree = "<group>"; };
+		1600D5F5500C131ED25CE118 /* GeneralTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeneralTab.swift; path = UI/GeneralTab.swift; sourceTree = "<group>"; };
+		18C5754177A855D523171C42 /* SpotlightTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpotlightTab.swift; path = UI/SpotlightTab.swift; sourceTree = "<group>"; };
+		1BFD7AD7F92193232CC9F7C6 /* SwitchSchedulerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwitchSchedulerTests.swift; sourceTree = "<group>"; };
+		26EBF339E8E765281E8CBEEE /* RunningAppsPicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunningAppsPicker.swift; path = UI/RunningAppsPicker.swift; sourceTree = "<group>"; };
+		2AF53DEED7FE16AF59674335 /* AppStateWindowSizingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppStateWindowSizingTests.swift; sourceTree = "<group>"; };
+		3192CF1594F15B742A3A86B1 /* SlashTriggerMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SlashTriggerMonitor.swift; path = Engine/SlashTriggerMonitor.swift; sourceTree = "<group>"; };
+		410B0A85803FF6EF19CA68DF /* SingleInstanceCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SingleInstanceCoordinator.swift; path = App/SingleInstanceCoordinator.swift; sourceTree = "<group>"; };
+		4283813F7BC25A6D3ADBD185 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		48FDC6D4751C97B90AD61555 /* LockScreenMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LockScreenMonitor.swift; path = Monitor/LockScreenMonitor.swift; sourceTree = "<group>"; };
+		4AEFAACE50CC8BB574F1BE86 /* LaunchContextTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchContextTests.swift; sourceTree = "<group>"; };
+		4C0826661EE1DAA2413A4061 /* VisibilityDiffTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VisibilityDiffTests.swift; sourceTree = "<group>"; };
+		4D7E9072D5FC5B082F554FAD /* InputSourcePicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSourcePicker.swift; path = UI/Components/InputSourcePicker.swift; sourceTree = "<group>"; };
+		5C74032FC273FD5A904C9EE8 /* Config.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Config.swift; path = Config/Config.swift; sourceTree = "<group>"; };
+		60AAFDB62DCC9BE03161CF4A /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		64BC410EC46D3B92768719DE /* AutoSwitch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoSwitch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BA0243C0E9C79CF90D1C246 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
+		75CB414FD9349290565D3F34 /* AppState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = App/AppState.swift; sourceTree = "<group>"; };
+		778E00982524DB169FE8B39A /* ConfigStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigStore.swift; path = Config/ConfigStore.swift; sourceTree = "<group>"; };
+		788E588B4B98B107C423F3EA /* InputSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSource.swift; path = InputSource/InputSource.swift; sourceTree = "<group>"; };
+		79740E021E6F5B5CF77BF8DF /* AppRule.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppRule.swift; path = Config/AppRule.swift; sourceTree = "<group>"; };
+		79AC2882EB2852580FDCB184 /* AppRulesTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppRulesTab.swift; path = UI/AppRulesTab.swift; sourceTree = "<group>"; };
+		7DE410769F2B2BC033DFBD1F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/SwiftUI.framework; sourceTree = DEVELOPER_DIR; };
+		7F177F3E502EDFE0E43ADF06 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = App/AppDelegate.swift; sourceTree = "<group>"; };
+		80FDCDF9C1277FDBE8D3F980 /* FocusEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusEvent.swift; path = Monitor/FocusEvent.swift; sourceTree = "<group>"; };
+		8ADE87756A9F1415A4294C71 /* FocusCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FocusCoordinatorTests.swift; sourceTree = "<group>"; };
+		8D21152157219EE4C1485D6A /* ConfigStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigStoreTests.swift; sourceTree = "<group>"; };
+		94DA76A78D0CC685C7BEB40C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = DEVELOPER_DIR; };
+		96778A3534044B54152F7086 /* InputSourceController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSourceController.swift; path = InputSource/InputSourceController.swift; sourceTree = "<group>"; };
+		999B9FB89B42C8B79EBD2B09 /* ShellPromptDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShellPromptDetector.swift; path = Engine/ShellPromptDetector.swift; sourceTree = "<group>"; };
+		9E8AE3361C88D819CADFFBB5 /* UpdaterController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpdaterController.swift; path = Update/UpdaterController.swift; sourceTree = "<group>"; };
+		A05EBB7468F129C1FF08AB8A /* InputSourceClassifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputSourceClassifier.swift; path = InputSource/InputSourceClassifier.swift; sourceTree = "<group>"; };
+		A0F024BDD0B4B23FC0C1EB86 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/ApplicationServices.framework; sourceTree = DEVELOPER_DIR; };
+		A0F8EC56F76AE01EAB3C8DF3 /* SpotlightPanelMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpotlightPanelMonitor.swift; path = Monitor/SpotlightPanelMonitor.swift; sourceTree = "<group>"; };
+		A7AC807379B997AA099A6FA8 /* PermissionsManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PermissionsManager.swift; path = System/PermissionsManager.swift; sourceTree = "<group>"; };
+		B0093D0FE76AD7CFA285E101 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		B1127E8AE9B22A25D6AE65F7 /* FocusCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusCoordinator.swift; path = Engine/FocusCoordinator.swift; sourceTree = "<group>"; };
+		B22A928F9F88572B4704F552 /* SwitchScheduler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SwitchScheduler.swift; path = Engine/SwitchScheduler.swift; sourceTree = "<group>"; };
+		B45D8E99164E85BD59FA9882 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Carbon.framework; sourceTree = DEVELOPER_DIR; };
+		B465374C285798EEF8CDF83B /* LoginItemManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginItemManager.swift; path = System/LoginItemManager.swift; sourceTree = "<group>"; };
+		BB5AA583E631CBE5DB935C46 /* SystemActionButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SystemActionButton.swift; path = UI/Components/SystemActionButton.swift; sourceTree = "<group>"; };
+		BC87CE93C0A9446E46093696 /* StatusBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusBarController.swift; path = App/StatusBarController.swift; sourceTree = "<group>"; };
+		C3CE11A9E72B123DC8441FA7 /* StatusPill.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusPill.swift; path = UI/Components/StatusPill.swift; sourceTree = "<group>"; };
+		D0AF80AB8FE1E04F47430A43 /* TransientEnglishMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TransientEnglishMonitor.swift; path = Engine/TransientEnglishMonitor.swift; sourceTree = "<group>"; };
+		DCB79C1259EE9E27D928A84E /* SettingsScene.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsScene.swift; path = UI/SettingsScene.swift; sourceTree = "<group>"; };
+		DE22750C8919AE8457107CED /* SystemSettingsLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SystemSettingsLinks.swift; path = System/SystemSettingsLinks.swift; sourceTree = "<group>"; };
+		E8CE7FDD832549E3D7A29ADB /* VisibilityDiff.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VisibilityDiff.swift; path = Monitor/VisibilityDiff.swift; sourceTree = "<group>"; };
+		F68668441313C5982537D3D4 /* AppActivationMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppActivationMonitor.swift; path = Monitor/AppActivationMonitor.swift; sourceTree = "<group>"; };
+		FC5632C9B68BA84BE72570A8 /* AutoSwitchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoSwitchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC6996909CF5C28E96077032 /* RuleEngineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
+		FD816BE922A0334DBBAA6B3A /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		FEF46DA8E1DFB573C26A73FE /* RuleEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RuleEngine.swift; path = Engine/RuleEngine.swift; sourceTree = "<group>"; };
+		FF271A64234242525919A46A /* FocusedElementMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FocusedElementMonitor.swift; path = Monitor/FocusedElementMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A6342C28B183F1BF5EB96E20 /* Frameworks */ = {
+		07DC045F182C976AAFFA0434 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04B473F9C856BB3D9A10E7AE /* Cocoa.framework in Frameworks */,
-				82AC301C132AAD0E6C766154 /* XCTest.framework in Frameworks */,
-				4CB73EC0F2441DE9321DF671 /* Foundation.framework in Frameworks */,
+				0FA47583E259C86D47BD1F51 /* Cocoa.framework in Frameworks */,
+				A6DB1AA60F141D6158804D41 /* XCTest.framework in Frameworks */,
+				194B92D7DF8A4BB812EC8C50 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C78E9D86E4E401B93C87B5F2 /* Frameworks */ = {
+		535716486BACB8DE8C5EB073 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				377586CF03B071BE5A271E5D /* Cocoa.framework in Frameworks */,
-				1EF5C0ECF009E3C32306D22D /* AppKit.framework in Frameworks */,
-				41074FDFBC48942EB1A1D761 /* SwiftUI.framework in Frameworks */,
-				792B91341CA10C9AD02B1C64 /* Carbon.framework in Frameworks */,
-				4873FCC0A85BD606F8EE0BA0 /* ApplicationServices.framework in Frameworks */,
-				6A4904672333EF96B831BD7D /* ServiceManagement.framework in Frameworks */,
-				C4598AEC7D4B0C1272643AEA /* Foundation.framework in Frameworks */,
+				065FB634E9B80D5E4872B6C3 /* Cocoa.framework in Frameworks */,
+				31CF53D633A92CB7B7ABFFDB /* AppKit.framework in Frameworks */,
+				FBAD90D3B4E58513E060DD6A /* SwiftUI.framework in Frameworks */,
+				3F14A777CBAFEB966BEF0FF0 /* Carbon.framework in Frameworks */,
+				6E97B2FE0F2A11240439EB6D /* ApplicationServices.framework in Frameworks */,
+				57717760AB7AD66385165370 /* ServiceManagement.framework in Frameworks */,
+				A07FDF8F4A5A6E146285A57E /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		4A7C17D3A8BC1FAF25102E6B = {
+		1358BD1D1D2099EB0D6D8611 /* AutoSwitch */ = {
 			isa = PBXGroup;
 			children = (
-				FFA382051ECE7C4DD1567070 /* Products */,
-				67521C43D30CA59E66B0B0DE /* Frameworks */,
-				EE011232BC1D916A1D2C98C9 /* AutoSwitch */,
-				C045DC4375EBA812A93FB835 /* AutoSwitchTests */,
-				869B2B2F1E3B190AEA962B5C /* Scripts */,
+				2437D3E66E4849462103ED6A /* Resources */,
+				0BCB4D47688D9859BD2D3274 /* AutoSwitchApp.swift */,
+				7F177F3E502EDFE0E43ADF06 /* AppDelegate.swift */,
+				75CB414FD9349290565D3F34 /* AppState.swift */,
+				128AB2E0E7290681D53CA49D /* LaunchContext.swift */,
+				410B0A85803FF6EF19CA68DF /* SingleInstanceCoordinator.swift */,
+				BC87CE93C0A9446E46093696 /* StatusBarController.swift */,
+				79740E021E6F5B5CF77BF8DF /* AppRule.swift */,
+				07CE7DB71559F87971F0A0A7 /* BuiltinSpotlightBundles.swift */,
+				5C74032FC273FD5A904C9EE8 /* Config.swift */,
+				778E00982524DB169FE8B39A /* ConfigStore.swift */,
+				B1127E8AE9B22A25D6AE65F7 /* FocusCoordinator.swift */,
+				FEF46DA8E1DFB573C26A73FE /* RuleEngine.swift */,
+				999B9FB89B42C8B79EBD2B09 /* ShellPromptDetector.swift */,
+				3192CF1594F15B742A3A86B1 /* SlashTriggerMonitor.swift */,
+				B22A928F9F88572B4704F552 /* SwitchScheduler.swift */,
+				D0AF80AB8FE1E04F47430A43 /* TransientEnglishMonitor.swift */,
+				788E588B4B98B107C423F3EA /* InputSource.swift */,
+				A05EBB7468F129C1FF08AB8A /* InputSourceClassifier.swift */,
+				96778A3534044B54152F7086 /* InputSourceController.swift */,
+				F68668441313C5982537D3D4 /* AppActivationMonitor.swift */,
+				FF271A64234242525919A46A /* FocusedElementMonitor.swift */,
+				80FDCDF9C1277FDBE8D3F980 /* FocusEvent.swift */,
+				48FDC6D4751C97B90AD61555 /* LockScreenMonitor.swift */,
+				A0F8EC56F76AE01EAB3C8DF3 /* SpotlightPanelMonitor.swift */,
+				E8CE7FDD832549E3D7A29ADB /* VisibilityDiff.swift */,
+				048928F5D346C2E7A9E00674 /* DocumentSwitchChecker.swift */,
+				B465374C285798EEF8CDF83B /* LoginItemManager.swift */,
+				A7AC807379B997AA099A6FA8 /* PermissionsManager.swift */,
+				DE22750C8919AE8457107CED /* SystemSettingsLinks.swift */,
+				9E8AE3361C88D819CADFFBB5 /* UpdaterController.swift */,
+				79AC2882EB2852580FDCB184 /* AppRulesTab.swift */,
+				4D7E9072D5FC5B082F554FAD /* InputSourcePicker.swift */,
+				C3CE11A9E72B123DC8441FA7 /* StatusPill.swift */,
+				BB5AA583E631CBE5DB935C46 /* SystemActionButton.swift */,
+				1600D5F5500C131ED25CE118 /* GeneralTab.swift */,
+				26EBF339E8E765281E8CBEEE /* RunningAppsPicker.swift */,
+				DCB79C1259EE9E27D928A84E /* SettingsScene.swift */,
+				18C5754177A855D523171C42 /* SpotlightTab.swift */,
+				11C8C2435E8C2AA82B2D552E /* Info.plist */,
 			);
+			name = AutoSwitch;
+			path = AutoSwitch;
 			sourceTree = "<group>";
 		};
-		574CF9F7E25FFCF3945B6D7F /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				6379D3943C7D5BD9FF5CFD51 /* Assets.xcassets */,
-			);
-			name = Resources;
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		67521C43D30CA59E66B0B0DE /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				720E59586076E2405F7EBDCF /* OS X */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		720E59586076E2405F7EBDCF /* OS X */ = {
-			isa = PBXGroup;
-			children = (
-				413E6E260390BFCD35981689 /* Cocoa.framework */,
-				8946AA29CA5EAEE5398D3AF5 /* AppKit.framework */,
-				095C6E9CB2C1FA3366A34633 /* SwiftUI.framework */,
-				326F469A65AF26B5C962F6CD /* Carbon.framework */,
-				8EABCA2DCE22797FDB862104 /* ApplicationServices.framework */,
-				5D6144D12CF86BA6ABD3BD1A /* ServiceManagement.framework */,
-				ED96134F5FFB9BC91F5F10E1 /* Foundation.framework */,
-				028EB4E7D1E254B69BBD0C0A /* XCTest.framework */,
-			);
-			name = "OS X";
-			sourceTree = "<group>";
-		};
-		869B2B2F1E3B190AEA962B5C /* Scripts */ = {
+		14C01BEEBA8DE88B987FD6FF /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -204,101 +221,102 @@
 			path = Scripts;
 			sourceTree = "<group>";
 		};
-		C045DC4375EBA812A93FB835 /* AutoSwitchTests */ = {
+		2437D3E66E4849462103ED6A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				88FD24BF80FD348E5939B416 /* RuleEngineTests.swift */,
-				C99C118134B8BE3BF0C3D8A0 /* SwitchSchedulerTests.swift */,
-				F0A76EA3FB4366AE828D28C3 /* ConfigStoreTests.swift */,
-				742675C0FA507B123101DD69 /* AppStateWindowSizingTests.swift */,
-				E709EFC2D8A0474FA6A48F22 /* LaunchContextTests.swift */,
-				663382C0243E990DA5FA1259 /* FocusCoordinatorTests.swift */,
-				8CC6CFCAFBEB6497C2336A21 /* VisibilityDiffTests.swift */,
+				60AAFDB62DCC9BE03161CF4A /* Assets.xcassets */,
+			);
+			name = Resources;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		72B3540CC3EFCE97C800D958 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				64BC410EC46D3B92768719DE /* AutoSwitch.app */,
+				FC5632C9B68BA84BE72570A8 /* AutoSwitchTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9FA065D2BD5FA3676D476295 = {
+			isa = PBXGroup;
+			children = (
+				72B3540CC3EFCE97C800D958 /* Products */,
+				B0ED1FDD7E891CC47FEB9D53 /* Frameworks */,
+				1358BD1D1D2099EB0D6D8611 /* AutoSwitch */,
+				D9EC18F5D534D617BE75E5BB /* AutoSwitchTests */,
+				14C01BEEBA8DE88B987FD6FF /* Scripts */,
+			);
+			sourceTree = "<group>";
+		};
+		B0ED1FDD7E891CC47FEB9D53 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EB7FF55305532802C9A814F3 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D9EC18F5D534D617BE75E5BB /* AutoSwitchTests */ = {
+			isa = PBXGroup;
+			children = (
+				FC6996909CF5C28E96077032 /* RuleEngineTests.swift */,
+				0B9A82DEFDAD39930D8EAAC4 /* ShellPromptDetectorTests.swift */,
+				1BFD7AD7F92193232CC9F7C6 /* SwitchSchedulerTests.swift */,
+				8D21152157219EE4C1485D6A /* ConfigStoreTests.swift */,
+				2AF53DEED7FE16AF59674335 /* AppStateWindowSizingTests.swift */,
+				4AEFAACE50CC8BB574F1BE86 /* LaunchContextTests.swift */,
+				8ADE87756A9F1415A4294C71 /* FocusCoordinatorTests.swift */,
+				4C0826661EE1DAA2413A4061 /* VisibilityDiffTests.swift */,
 			);
 			name = AutoSwitchTests;
 			path = AutoSwitchTests;
 			sourceTree = "<group>";
 		};
-		EE011232BC1D916A1D2C98C9 /* AutoSwitch */ = {
+		EB7FF55305532802C9A814F3 /* OS X */ = {
 			isa = PBXGroup;
 			children = (
-				574CF9F7E25FFCF3945B6D7F /* Resources */,
-				91385310E58F930EE00ED2C6 /* AutoSwitchApp.swift */,
-				32FED723F89596E6F69EFF9A /* AppDelegate.swift */,
-				F297FE26852B2212A54B6FA4 /* AppState.swift */,
-				9A8BA71DF0B54FA69D1391A0 /* LaunchContext.swift */,
-				374A18D6A8F988BE20B4AE68 /* SingleInstanceCoordinator.swift */,
-				2FFDF9EF854E15F317807D2E /* AppRule.swift */,
-				FDBC9DE415585BB36265297F /* BuiltinSpotlightBundles.swift */,
-				EC304218C9526AA894C8DCC7 /* Config.swift */,
-				3D689282E624F503C6256305 /* ConfigStore.swift */,
-				C9C0FA409AE349D21B336994 /* FocusCoordinator.swift */,
-				A5F0F076860F6BBF2B93044E /* RuleEngine.swift */,
-				F1A751BFB4438F71BEBEB908 /* SwitchScheduler.swift */,
-				3B51956A02B29DCD5347332F /* InputSource.swift */,
-				222A9B9D585C08BAF86575CF /* InputSourceClassifier.swift */,
-				FDEEC2D4A20F4EB68E929CE5 /* InputSourceController.swift */,
-				609C1984994A678B972CA2DD /* AppActivationMonitor.swift */,
-				312C2979EC167C117155531A /* FocusEvent.swift */,
-				E8F8E7161E911E2D2C333092 /* LockScreenMonitor.swift */,
-				4BA72BC8A7F82367519EC7FF /* SpotlightPanelMonitor.swift */,
-				C058CEA8AAD6DBD42700AA69 /* VisibilityDiff.swift */,
-				2393D8CD0EC974B26E0B0AB4 /* DocumentSwitchChecker.swift */,
-				1CA0D050C561D4EED2EC3614 /* LoginItemManager.swift */,
-				CFBFD2B0327DABDADC894257 /* PermissionsManager.swift */,
-				9E022C63046E86A6424C01DF /* SystemSettingsLinks.swift */,
-				B84A6F40EC507F28424E3C04 /* UpdaterController.swift */,
-				4F652320228B202FCFABED59 /* AppRulesTab.swift */,
-				3D879BB4FCDB6CED9ADEC316 /* InputSourcePicker.swift */,
-				AC85586C5A863C5FBB2DE137 /* StatusPill.swift */,
-				5511293CB6FF69FCC4945EE4 /* SystemActionButton.swift */,
-				8393DB55F9073B5F6B95E46B /* GeneralTab.swift */,
-				3BE4BB63982EC640A0FCB601 /* RunningAppsPicker.swift */,
-				CD5FE517B6BD96CDA4ED0DA8 /* SettingsScene.swift */,
-				93D6863DB82078B44FF77862 /* SpotlightTab.swift */,
-				9C2E816432E4ADF6D0775E04 /* Info.plist */,
+				4283813F7BC25A6D3ADBD185 /* Cocoa.framework */,
+				94DA76A78D0CC685C7BEB40C /* AppKit.framework */,
+				7DE410769F2B2BC033DFBD1F /* SwiftUI.framework */,
+				B45D8E99164E85BD59FA9882 /* Carbon.framework */,
+				A0F024BDD0B4B23FC0C1EB86 /* ApplicationServices.framework */,
+				6BA0243C0E9C79CF90D1C246 /* ServiceManagement.framework */,
+				B0093D0FE76AD7CFA285E101 /* Foundation.framework */,
+				FD816BE922A0334DBBAA6B3A /* XCTest.framework */,
 			);
-			name = AutoSwitch;
-			path = AutoSwitch;
-			sourceTree = "<group>";
-		};
-		FFA382051ECE7C4DD1567070 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				99F8B95458948C99895B355C /* AutoSwitch.app */,
-				A5FE3DB49FA672C2A1744945 /* AutoSwitchTests.xctest */,
-			);
-			name = Products;
+			name = "OS X";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CF030ED577078A197D0209A1 /* AutoSwitchTests */ = {
+		3F68F8677D88EB3B63F4D4E8 /* AutoSwitchTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F6D202CB6D98A42A218492C5 /* Build configuration list for PBXNativeTarget "AutoSwitchTests" */;
+			buildConfigurationList = 0ABFA138A091983DE1E8FA4A /* Build configuration list for PBXNativeTarget "AutoSwitchTests" */;
 			buildPhases = (
-				6D315A6597D511A22A1B2409 /* Sources */,
-				A6342C28B183F1BF5EB96E20 /* Frameworks */,
-				3DAD69C9AC704CB318F14566 /* Resources */,
+				2A74EB4F3CA6CF06A1E0A769 /* Sources */,
+				07DC045F182C976AAFFA0434 /* Frameworks */,
+				5072D4923571D011C6B73AD2 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				08757AA810213446CB3080FB /* PBXTargetDependency */,
+				9B75270661FA50672C328EC0 /* PBXTargetDependency */,
 			);
 			name = AutoSwitchTests;
 			productName = AutoSwitchTests;
-			productReference = A5FE3DB49FA672C2A1744945 /* AutoSwitchTests.xctest */;
+			productReference = FC5632C9B68BA84BE72570A8 /* AutoSwitchTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		E0E34E8EEB2E5E31C6CD106F /* AutoSwitch */ = {
+		AC2C8BD4029D8A16B4315688 /* AutoSwitch */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0A7F1B3D0DBBFBEA243C64C1 /* Build configuration list for PBXNativeTarget "AutoSwitch" */;
+			buildConfigurationList = ED29E6BE7F0B57F9F9E0A589 /* Build configuration list for PBXNativeTarget "AutoSwitch" */;
 			buildPhases = (
-				57834C6BE40E42B618461B91 /* Sources */,
-				C78E9D86E4E401B93C87B5F2 /* Frameworks */,
-				922EF91E88635D025B0504F9 /* Resources */,
+				81A1A6253F9117B7D0E71FB4 /* Sources */,
+				535716486BACB8DE8C5EB073 /* Frameworks */,
+				C6F5F1CB73EB52F07F78658A /* Resources */,
 			);
 			buildRules = (
 			);
@@ -306,16 +324,16 @@
 			);
 			name = AutoSwitch;
 			packageProductDependencies = (
-				C41C38B8431E4CABB522691C /* Sparkle */,
+				880602E241981E20C7A3CBF1 /* Sparkle */,
 			);
 			productName = AutoSwitch;
-			productReference = 99F8B95458948C99895B355C /* AutoSwitch.app */;
+			productReference = 64BC410EC46D3B92768719DE /* AutoSwitch.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		FA5A6D16AF7D63654B9220C1 /* Project object */ = {
+		EAE6159FDF81B52C7156E8D9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 2620;
@@ -323,7 +341,7 @@
 				TargetAttributes = {
 				};
 			};
-			buildConfigurationList = BE65D124CA0EA2A7987CBBA3 /* Build configuration list for PBXProject "AutoSwitch" */;
+			buildConfigurationList = BE2A17DCBFBB60C4CF192B3F /* Build configuration list for PBXProject "AutoSwitch" */;
 			compatibilityVersion = "Xcode 26.0";
 			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
@@ -331,108 +349,114 @@
 				"zh-Hans",
 				Base,
 			);
-			mainGroup = 4A7C17D3A8BC1FAF25102E6B;
+			mainGroup = 9FA065D2BD5FA3676D476295;
 			minimizedProjectReferenceProxies = 0;
 			packageReferences = (
-				186371E80B8D9FF15C6C4884 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				E97A4DDD38911947167268DE /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = FFA382051ECE7C4DD1567070 /* Products */;
+			productRefGroup = 72B3540CC3EFCE97C800D958 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E0E34E8EEB2E5E31C6CD106F /* AutoSwitch */,
-				CF030ED577078A197D0209A1 /* AutoSwitchTests */,
+				AC2C8BD4029D8A16B4315688 /* AutoSwitch */,
+				3F68F8677D88EB3B63F4D4E8 /* AutoSwitchTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		3DAD69C9AC704CB318F14566 /* Resources */ = {
+		5072D4923571D011C6B73AD2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		922EF91E88635D025B0504F9 /* Resources */ = {
+		C6F5F1CB73EB52F07F78658A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6222D68DD77B8388BF0613EE /* Assets.xcassets in Resources */,
+				454F6153F7DD0CAD18CC178D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		57834C6BE40E42B618461B91 /* Sources */ = {
+		2A74EB4F3CA6CF06A1E0A769 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01DA6314384ABCC2DE8676F5 /* AutoSwitchApp.swift in Sources */,
-				FAC94A2CF91F6F1296783BE9 /* AppDelegate.swift in Sources */,
-				E41BACF37B6B6FE748A15050 /* AppState.swift in Sources */,
-				02E8D2B2B4B845C4A8D2F603 /* LaunchContext.swift in Sources */,
-				4C065005954EC90BFDC3D4F9 /* SingleInstanceCoordinator.swift in Sources */,
-				63A38F210D5AA0813E5A1C26 /* AppRule.swift in Sources */,
-				D63A968D34BE40BF19292B16 /* BuiltinSpotlightBundles.swift in Sources */,
-				9E455F50E959BD556EB50AD2 /* Config.swift in Sources */,
-				79287D3CD3F91CEB17B30E67 /* ConfigStore.swift in Sources */,
-				98F94B5CACB6623D8AFE13A9 /* FocusCoordinator.swift in Sources */,
-				C447FD07C600C5955B71BBD4 /* RuleEngine.swift in Sources */,
-				8EFEB333E3FCCDA687A0DB9A /* SwitchScheduler.swift in Sources */,
-				C2C7DD2CF58FDD4020F2C8BA /* InputSource.swift in Sources */,
-				1C397EC063EAC45A64E16D52 /* InputSourceClassifier.swift in Sources */,
-				0183E56707E1937ADC8B9EB6 /* InputSourceController.swift in Sources */,
-				ED81FD80981298C26D128DC4 /* AppActivationMonitor.swift in Sources */,
-				9F6C2E2C62D3A5AE4D669D8C /* FocusEvent.swift in Sources */,
-				FDC78C32DC2626F149DA0CB8 /* LockScreenMonitor.swift in Sources */,
-				1248221C3E4BCF2CF6F10A9D /* SpotlightPanelMonitor.swift in Sources */,
-				EAE25801EEF0B1A26AF2A8AB /* VisibilityDiff.swift in Sources */,
-				E708C1A368B0192024515B45 /* DocumentSwitchChecker.swift in Sources */,
-				78B918B6D5F8430CBE998526 /* LoginItemManager.swift in Sources */,
-				FCE7F9DF58C1BC5F614C5BCB /* PermissionsManager.swift in Sources */,
-				7BF0A961D8E24C63D8EF915A /* SystemSettingsLinks.swift in Sources */,
-				A95B4F865BE0C4F0F4026449 /* UpdaterController.swift in Sources */,
-				A6F5292DB5E56D2751B868FB /* AppRulesTab.swift in Sources */,
-				6FAEF44C4CFAA98080CA0D44 /* InputSourcePicker.swift in Sources */,
-				EF26171B13F2EB10ADC3420F /* StatusPill.swift in Sources */,
-				05A1817E0F82A88EF184F1D5 /* SystemActionButton.swift in Sources */,
-				DC72647C9EBBF340D3F1DAF3 /* GeneralTab.swift in Sources */,
-				673845F3EF106E0317C1B6E1 /* RunningAppsPicker.swift in Sources */,
-				238B393E89A35605D4BB65D1 /* SettingsScene.swift in Sources */,
-				14E8BF43C06EFE2A3F2A22DF /* SpotlightTab.swift in Sources */,
+				F5C5B72ED8BEA5FAF6C486B1 /* RuleEngineTests.swift in Sources */,
+				75A27086D9AC4DC9082F29C2 /* ShellPromptDetectorTests.swift in Sources */,
+				45F9140CA255B49B2D20D409 /* SwitchSchedulerTests.swift in Sources */,
+				DDEF0EF92DB8F6B0C0CEAC06 /* ConfigStoreTests.swift in Sources */,
+				6E4D4B48068E3482B016F810 /* AppStateWindowSizingTests.swift in Sources */,
+				A4BFCEB7C24FCE08450E9F02 /* LaunchContextTests.swift in Sources */,
+				195AD02249DFC3B3FCCD38CA /* FocusCoordinatorTests.swift in Sources */,
+				05413CC23EE8140D64B036E0 /* VisibilityDiffTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		6D315A6597D511A22A1B2409 /* Sources */ = {
+		81A1A6253F9117B7D0E71FB4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				40DCB54DD4F6558DD5788A7D /* RuleEngineTests.swift in Sources */,
-				7B1922257C13F37B41BB1105 /* SwitchSchedulerTests.swift in Sources */,
-				5BF217AB7AA4CBFDBD327245 /* ConfigStoreTests.swift in Sources */,
-				769A18DDE94D81DFFD39C02C /* AppStateWindowSizingTests.swift in Sources */,
-				50C5CC7138704A0DBD35296A /* LaunchContextTests.swift in Sources */,
-				5817423C3691B075875D2BF3 /* FocusCoordinatorTests.swift in Sources */,
-				74CD51586C23CBC4F4436443 /* VisibilityDiffTests.swift in Sources */,
+				FAE1B3D75E11FF82012588BF /* AutoSwitchApp.swift in Sources */,
+				C3F6AB70D6860E9383D56B46 /* AppDelegate.swift in Sources */,
+				62BB4BDD30F4F7AB0FF9D76C /* AppState.swift in Sources */,
+				7D8F4BFA9F92B62BDC2437C6 /* LaunchContext.swift in Sources */,
+				1222110BC2E9506DF93EAFA7 /* SingleInstanceCoordinator.swift in Sources */,
+				A9FC1E63A713DBE35827B49D /* StatusBarController.swift in Sources */,
+				0007E358F55644ABC8DF2427 /* AppRule.swift in Sources */,
+				F17E27F61B10ADCE82B22126 /* BuiltinSpotlightBundles.swift in Sources */,
+				81E735B37A7F7C67A3654FE5 /* Config.swift in Sources */,
+				26EB7172CE36830E8C5A97B7 /* ConfigStore.swift in Sources */,
+				5C8E62D76B3A295A960F8F06 /* FocusCoordinator.swift in Sources */,
+				E4687F7C2255719666195D12 /* RuleEngine.swift in Sources */,
+				B50F84ACE151CBCF629964E5 /* ShellPromptDetector.swift in Sources */,
+				66436916228932F7CA0A5E8F /* SlashTriggerMonitor.swift in Sources */,
+				59B20D846D1884D17C2F6C01 /* SwitchScheduler.swift in Sources */,
+				F594AAA368957214D1B95340 /* TransientEnglishMonitor.swift in Sources */,
+				CBA172DD699AFBF6648C7596 /* InputSource.swift in Sources */,
+				C25D76891E26132710622D5A /* InputSourceClassifier.swift in Sources */,
+				5B157F74E05B78C36ACDFEEA /* InputSourceController.swift in Sources */,
+				ED305AD84BA246BEAF1883F2 /* AppActivationMonitor.swift in Sources */,
+				478EF8F8E72754E67CB222A2 /* FocusedElementMonitor.swift in Sources */,
+				B527EFC4D55849086BC701AF /* FocusEvent.swift in Sources */,
+				0FA40A872D3B5C4E086435B3 /* LockScreenMonitor.swift in Sources */,
+				EACCC4185220F0194607870A /* SpotlightPanelMonitor.swift in Sources */,
+				9066061FF6657925342EAD1D /* VisibilityDiff.swift in Sources */,
+				366A1D86FFE6EFC948B969CA /* DocumentSwitchChecker.swift in Sources */,
+				66BE1CA300662D02ABAAF671 /* LoginItemManager.swift in Sources */,
+				D2F795960299D25061DC4966 /* PermissionsManager.swift in Sources */,
+				E50D92C17B47772D4278C7B0 /* SystemSettingsLinks.swift in Sources */,
+				DF1F42962C36E45A2FDE46C2 /* UpdaterController.swift in Sources */,
+				E4EA88BF59AA108337182490 /* AppRulesTab.swift in Sources */,
+				71C144C192323314C7AA34C7 /* InputSourcePicker.swift in Sources */,
+				71FAFD3802EB85892BB969F9 /* StatusPill.swift in Sources */,
+				3100E7D95260505C0A07BB00 /* SystemActionButton.swift in Sources */,
+				D4AFB3A495D1BFDDF3ED9F73 /* GeneralTab.swift in Sources */,
+				4CEBC2FB3F5EE2AFCC115F75 /* RunningAppsPicker.swift in Sources */,
+				2A868169202322FA04AA3766 /* SettingsScene.swift in Sources */,
+				54758322A36E8D9522FF243A /* SpotlightTab.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		08757AA810213446CB3080FB /* PBXTargetDependency */ = {
+		9B75270661FA50672C328EC0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = AutoSwitch;
-			target = E0E34E8EEB2E5E31C6CD106F /* AutoSwitch */;
-			targetProxy = DDA957AF3316BE0857CDCB86 /* PBXContainerItemProxy */;
+			target = AC2C8BD4029D8A16B4315688 /* AutoSwitch */;
+			targetProxy = C732C4ECE4271C6FD7E6EA31 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		1E30906300C6197F8090C6EC /* Release */ = {
+		014858C4B13E855E7118D1D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
@@ -441,21 +465,21 @@
 				CODE_SIGNING_REQUIRED = NO;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_CONCURRENCY = YES;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.5;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.autoswitch.AutoSwitchTests;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 6.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AutoSwitch.app/Contents/MacOS/AutoSwitch";
 			};
-			name = Release;
+			name = Debug;
 		};
-		264B5CA31EF5F9D4AE1D9BD2 /* Debug */ = {
+		04FED824284BD24A41BD5AE2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
@@ -466,7 +490,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_CONCURRENCY = YES;
@@ -477,15 +501,15 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.5;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.autoswitch.AutoSwitch;
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 			};
-			name = Debug;
+			name = Release;
 		};
-		2A69575754790D14E8E9CCA3 /* Debug */ = {
+		56FEE41EF168C6123A71EB8C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -546,7 +570,60 @@
 			};
 			name = Debug;
 		};
-		5A8D619575135133CCC2602A /* Release */ = {
+		88BD3A29CA885764C6CE18D9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 7;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_CONCURRENCY = YES;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.autoswitch.AutoSwitchTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AutoSwitch.app/Contents/MacOS/AutoSwitch";
+			};
+			name = Release;
+		};
+		BC204A24486F2B09249A1AB7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 7;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_CONCURRENCY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AutoSwitch/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.autoswitch.AutoSwitch;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		F267775A069B390009DEB18C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -600,85 +677,32 @@
 			};
 			name = Release;
 		};
-		7EFF74D1B7BE306FC13DDB68 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = arm64;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 6;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_STRICT_CONCURRENCY = YES;
-				ENABLE_TESTABILITY = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.autoswitch.AutoSwitchTests;
-				SDKROOT = macosx;
-				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AutoSwitch.app/Contents/MacOS/AutoSwitch";
-			};
-			name = Debug;
-		};
-		B5E5E300C723AA540A31562B /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = arm64;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_STRICT_CONCURRENCY = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = AutoSwitch/App/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.autoswitch.AutoSwitch;
-				SDKROOT = macosx;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0A7F1B3D0DBBFBEA243C64C1 /* Build configuration list for PBXNativeTarget "AutoSwitch" */ = {
+		0ABFA138A091983DE1E8FA4A /* Build configuration list for PBXNativeTarget "AutoSwitchTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B5E5E300C723AA540A31562B /* Release */,
-				264B5CA31EF5F9D4AE1D9BD2 /* Debug */,
+				88BD3A29CA885764C6CE18D9 /* Release */,
+				014858C4B13E855E7118D1D6 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BE65D124CA0EA2A7987CBBA3 /* Build configuration list for PBXProject "AutoSwitch" */ = {
+		BE2A17DCBFBB60C4CF192B3F /* Build configuration list for PBXProject "AutoSwitch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2A69575754790D14E8E9CCA3 /* Debug */,
-				5A8D619575135133CCC2602A /* Release */,
+				56FEE41EF168C6123A71EB8C /* Debug */,
+				F267775A069B390009DEB18C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F6D202CB6D98A42A218492C5 /* Build configuration list for PBXNativeTarget "AutoSwitchTests" */ = {
+		ED29E6BE7F0B57F9F9E0A589 /* Build configuration list for PBXNativeTarget "AutoSwitch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1E30906300C6197F8090C6EC /* Release */,
-				7EFF74D1B7BE306FC13DDB68 /* Debug */,
+				04FED824284BD24A41BD5AE2 /* Release */,
+				BC204A24486F2B09249A1AB7 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -686,7 +710,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		186371E80B8D9FF15C6C4884 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+		E97A4DDD38911947167268DE /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
 			requirement = {
@@ -697,12 +721,12 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C41C38B8431E4CABB522691C /* Sparkle */ = {
+		880602E241981E20C7A3CBF1 /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 186371E80B8D9FF15C6C4884 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			package = E97A4DDD38911947167268DE /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = FA5A6D16AF7D63654B9220C1 /* Project object */;
+	rootObject = EAE6159FDF81B52C7156E8D9 /* Project object */;
 }

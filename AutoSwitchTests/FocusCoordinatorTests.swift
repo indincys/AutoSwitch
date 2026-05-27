@@ -9,6 +9,7 @@ final class FocusCoordinatorTests: XCTestCase {
         ]
         var currentInputSourceIDValue: String?
         var selected: [String] = []
+        var onUserInitiatedChange: ((_ previousID: String?, _ currentID: String?) -> Void)?
 
         func startObservingSystemSourceChanges() {}
         func refreshInputSources() {}

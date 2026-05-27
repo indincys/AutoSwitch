@@ -6,6 +6,7 @@ final class SwitchSchedulerTests: XCTestCase {
         var availableInputSources: [InputSource] = []
         var currentInputSourceIDValue: String? = nil
         var selected: [String] = []
+        var onUserInitiatedChange: ((_ previousID: String?, _ currentID: String?) -> Void)?
 
         func startObservingSystemSourceChanges() {}
         func refreshInputSources() {}

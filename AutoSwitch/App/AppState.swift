@@ -121,6 +121,34 @@ final class AppState: ObservableObject {
         }
     )
 
+    lazy var focusedElementMonitor = FocusedElementMonitor(
+        isEnabledProvider: { [weak self] in
+            self?.configStore.config.shellPromptDetectionEnabled ?? true
+        },
+        eventHandler: { [weak self] event in
+            self?.focusCoordinator.handleSystemEvent(event)
+        }
+    )
+
+    lazy var slashTriggerMonitor = SlashTriggerMonitor(
+        isEnabledProvider: { [weak self] in
+            self?.configStore.config.slashTriggerEnabled ?? true
+        },
+        inputSourceController: inputSourceController
+    )
+
+    lazy var transientEnglishMonitor = TransientEnglishMonitor(
+        isEnabledProvider: { [weak self] in
+            self?.configStore.config.transientEnglishEnabled ?? true
+        },
+        idleSecondsProvider: { [weak self] in
+            self?.configStore.config.transientEnglishIdleSeconds ?? 10
+        },
+        inputSourceController: inputSourceController
+    )
+
+    lazy var statusBarController = StatusBarController(appState: self)
+
     private var forwardingTokens: [AnyCancellable] = []
     private var settingsWindow: NSWindow?
     private var settingsWindowDelegate: SettingsWindowDelegate?
@@ -131,6 +159,9 @@ final class AppState: ObservableObject {
             guard let self else { return }
             self.focusCoordinator.reconcileCurrentFocus(reason: "config changed")
             self.spotlightPanelMonitor.refreshObservers()
+            if !isTestEnvironment {
+                self.statusBarController.updateVisibility()
+            }
         }
     }
 
@@ -161,6 +192,12 @@ final class AppState: ObservableObject {
         appActivationMonitor.start()
         lockScreenMonitor.start()
         spotlightPanelMonitor.start()
+        focusedElementMonitor.start()
+        slashTriggerMonitor.start()
+        transientEnglishMonitor.start()
+        if configStore.config.showMenuBarIcon {
+            statusBarController.start()
+        }
         focusCoordinator.reconcileCurrentFocus(reason: "startup")
     }
 

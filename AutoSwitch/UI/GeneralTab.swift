@@ -41,6 +41,47 @@ struct GeneralTab: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section {
+                ShellPromptDetectionRow()
+            } header: {
+                Text("终端识别")
+            } footer: {
+                Text("焦点元素当前行以 shell 提示符开头(如 bash-5.3$、host:dir user$)时自动切英文。停止匹配时回退到 app 规则,不会强行改回中文。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                SlashTriggerRow()
+            } header: {
+                Text("/ 键触发")
+            } footer: {
+                Text("任何 app 中输入「/」时临时切到英文,直到下一次输入空格、Tab 或回车,自动还原为之前的输入法。适用于 Claude Code / Codex CLI 的 slash 命令。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                TransientEnglishRow()
+                TransientEnglishIdleRow()
+            } header: {
+                Text("Shift 兜底")
+            } footer: {
+                Text("当你手动按 Shift 切到英文后,无任何键盘活动达到设定秒数,会自动切回之前的输入法。继续输入会重置计时,再按 Shift 也能立即切回。覆盖 AutoSwitch 自动检测不到的场景(如 Electron 内嵌终端)。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                MenuBarIconRow()
+            } header: {
+                Text("菜单栏")
+            } footer: {
+                Text("菜单栏图标用于快速给当前应用添加规则、切换功能开关、退出 app。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("关于") {
                 AboutRow()
             }
@@ -106,6 +147,71 @@ private struct LaunchAtLoginRow: View {
                 .font(.caption)
                 .foregroundStyle(.orange)
         }
+    }
+}
+
+private struct ShellPromptDetectionRow: View {
+    @EnvironmentObject private var appState: AppState
+
+    var body: some View {
+        Toggle("检测 shell 提示符自动切英文", isOn: Binding(
+            get: { appState.configStore.config.shellPromptDetectionEnabled },
+            set: { appState.configStore.setShellPromptDetectionEnabled($0) }
+        ))
+    }
+}
+
+private struct SlashTriggerRow: View {
+    @EnvironmentObject private var appState: AppState
+
+    var body: some View {
+        Toggle("输入「/」时自动切英文,遇空格/Tab/回车恢复", isOn: Binding(
+            get: { appState.configStore.config.slashTriggerEnabled },
+            set: { appState.configStore.setSlashTriggerEnabled($0) }
+        ))
+    }
+}
+
+private struct TransientEnglishRow: View {
+    @EnvironmentObject private var appState: AppState
+
+    var body: some View {
+        Toggle("启用 Shift 兜底", isOn: Binding(
+            get: { appState.configStore.config.transientEnglishEnabled },
+            set: { appState.configStore.setTransientEnglishEnabled($0) }
+        ))
+    }
+}
+
+private struct TransientEnglishIdleRow: View {
+    @EnvironmentObject private var appState: AppState
+
+    var body: some View {
+        let seconds = appState.configStore.config.transientEnglishIdleSeconds
+        HStack {
+            Text("无活动秒数后切回")
+            Spacer()
+            Stepper(value: Binding(
+                get: { seconds },
+                set: { appState.configStore.setTransientEnglishIdleSeconds($0) }
+            ), in: 3...120, step: 1) {
+                Text("\(seconds) 秒")
+                    .monospacedDigit()
+                    .frame(minWidth: 50, alignment: .trailing)
+            }
+        }
+        .disabled(!appState.configStore.config.transientEnglishEnabled)
+    }
+}
+
+private struct MenuBarIconRow: View {
+    @EnvironmentObject private var appState: AppState
+
+    var body: some View {
+        Toggle("显示菜单栏图标", isOn: Binding(
+            get: { appState.configStore.config.showMenuBarIcon },
+            set: { appState.configStore.setShowMenuBarIcon($0) }
+        ))
     }
 }
 

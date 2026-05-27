@@ -41,17 +41,22 @@ app_files = %w[
   App/AppState.swift
   App/LaunchContext.swift
   App/SingleInstanceCoordinator.swift
+  App/StatusBarController.swift
   Config/AppRule.swift
   Config/BuiltinSpotlightBundles.swift
   Config/Config.swift
   Config/ConfigStore.swift
   Engine/FocusCoordinator.swift
   Engine/RuleEngine.swift
+  Engine/ShellPromptDetector.swift
+  Engine/SlashTriggerMonitor.swift
   Engine/SwitchScheduler.swift
+  Engine/TransientEnglishMonitor.swift
   InputSource/InputSource.swift
   InputSource/InputSourceClassifier.swift
   InputSource/InputSourceController.swift
   Monitor/AppActivationMonitor.swift
+  Monitor/FocusedElementMonitor.swift
   Monitor/FocusEvent.swift
   Monitor/LockScreenMonitor.swift
   Monitor/SpotlightPanelMonitor.swift
@@ -73,6 +78,7 @@ app_files = %w[
 
 test_files = %w[
   RuleEngineTests.swift
+  ShellPromptDetectorTests.swift
   SwitchSchedulerTests.swift
   ConfigStoreTests.swift
   AppStateWindowSizingTests.swift
@@ -113,8 +119,8 @@ app_target.package_product_dependencies << sparkle_dep
 
 common_app_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitch',
-  'MARKETING_VERSION' => '0.1.5',
-  'CURRENT_PROJECT_VERSION' => '6',
+  'MARKETING_VERSION' => '0.2.0',
+  'CURRENT_PROJECT_VERSION' => '7',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
@@ -146,8 +152,8 @@ app_target.resources_build_phase.add_file_reference(assets_ref)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
-  'MARKETING_VERSION' => '0.1.5',
-  'CURRENT_PROJECT_VERSION' => '6',
+  'MARKETING_VERSION' => '0.2.0',
+  'CURRENT_PROJECT_VERSION' => '7',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',

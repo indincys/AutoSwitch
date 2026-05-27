@@ -12,6 +12,10 @@ final class FocusCoordinator {
     private let frontmostBundleIDProvider: () -> String?
     private let ruleEngine = RuleEngine()
     private var lastRegularActivationBundleID: String?
+    private var shellPromptDetected: Bool = false
+    private var shellPromptBundleID: String?
+    private var tuiPromptDetected: Bool = false
+    private var tuiPromptBundleID: String?
 
     init(
         configStore: ConfigStore,
@@ -37,6 +41,14 @@ final class FocusCoordinator {
             logger.info("ignoring duplicate app activation: \(bundleID, privacy: .public)")
             return
         }
+        if bundleID != shellPromptBundleID {
+            shellPromptDetected = false
+            shellPromptBundleID = nil
+        }
+        if bundleID != tuiPromptBundleID {
+            tuiPromptDetected = false
+            tuiPromptBundleID = nil
+        }
         lastRegularActivationBundleID = bundleID
         scheduleResolution(bundleID: bundleID, isPanelContext: false, reason: "app activation")
     }
@@ -54,22 +66,65 @@ final class FocusCoordinator {
         case .screenWoke, .sessionActive:
             logger.info("system wake/session active")
             reconcileCurrentFocus(reason: "system event")
+        case .shellPromptStateChanged(let bundleID, let detected):
+            handleShellPromptStateChanged(bundleID: bundleID, detected: detected)
+        case .tuiPromptStateChanged(let bundleID, let detected):
+            handleTUIPromptStateChanged(bundleID: bundleID, detected: detected)
         }
     }
 
     func reconcileCurrentFocus(reason: String) {
         let bundleID = frontmostBundleIDProvider()
         logger.info("reconcile focus (\(reason, privacy: .public)): \(bundleID ?? "nil", privacy: .public)")
+        if bundleID != shellPromptBundleID {
+            shellPromptDetected = false
+            shellPromptBundleID = nil
+        }
+        if bundleID != tuiPromptBundleID {
+            tuiPromptDetected = false
+            tuiPromptBundleID = nil
+        }
         lastRegularActivationBundleID = bundleID
         scheduleResolution(bundleID: bundleID, isPanelContext: false, reason: reason)
     }
 
+    private func handleShellPromptStateChanged(bundleID: String?, detected: Bool) {
+        if detected == shellPromptDetected && bundleID == shellPromptBundleID {
+            return
+        }
+        logger.info("shell prompt state changed: bundle=\(bundleID ?? "nil", privacy: .public) detected=\(detected, privacy: .public)")
+        shellPromptDetected = detected
+        shellPromptBundleID = detected ? bundleID : nil
+        let target = bundleID ?? lastRegularActivationBundleID ?? frontmostBundleIDProvider()
+        scheduleResolution(bundleID: target, isPanelContext: false, reason: detected ? "shell prompt detected" : "shell prompt cleared")
+    }
+
+    private func handleTUIPromptStateChanged(bundleID: String?, detected: Bool) {
+        if detected == tuiPromptDetected && bundleID == tuiPromptBundleID {
+            return
+        }
+        logger.info("tui prompt state changed: bundle=\(bundleID ?? "nil", privacy: .public) detected=\(detected, privacy: .public)")
+        tuiPromptDetected = detected
+        tuiPromptBundleID = detected ? bundleID : nil
+        let target = bundleID ?? lastRegularActivationBundleID ?? frontmostBundleIDProvider()
+        scheduleResolution(bundleID: target, isPanelContext: false, reason: detected ? "tui prompt detected" : "tui prompt cleared")
+    }
+
     private func scheduleResolution(bundleID: String?, isPanelContext: Bool, reason: String) {
+        let effectiveShell = shellPromptDetected
+            && !isPanelContext
+            && (shellPromptBundleID == nil || shellPromptBundleID == bundleID)
+        let effectiveTUI = tuiPromptDetected
+            && !isPanelContext
+            && (tuiPromptBundleID == nil || tuiPromptBundleID == bundleID)
+
         let decision = ruleEngine.resolve(
             bundleID: bundleID,
             isPanelContext: isPanelContext,
             config: configStore.config,
-            availableInputSources: inputSourceController.availableInputSources
+            availableInputSources: inputSourceController.availableInputSources,
+            shellPromptDetected: effectiveShell,
+            tuiPromptDetected: effectiveTUI
         )
 
         guard let decision else {

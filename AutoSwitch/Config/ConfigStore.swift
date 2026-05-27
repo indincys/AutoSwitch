@@ -121,6 +121,26 @@ final class ConfigStore: ObservableObject {
         update { $0.launchAtLogin = enabled }
     }
 
+    func setShellPromptDetectionEnabled(_ enabled: Bool) {
+        update { $0.shellPromptDetectionEnabled = enabled }
+    }
+
+    func setSlashTriggerEnabled(_ enabled: Bool) {
+        update { $0.slashTriggerEnabled = enabled }
+    }
+
+    func setTransientEnglishEnabled(_ enabled: Bool) {
+        update { $0.transientEnglishEnabled = enabled }
+    }
+
+    func setTransientEnglishIdleSeconds(_ seconds: Int) {
+        update { $0.transientEnglishIdleSeconds = max(3, min(120, seconds)) }
+    }
+
+    func setShowMenuBarIcon(_ enabled: Bool) {
+        update { $0.showMenuBarIcon = enabled }
+    }
+
     func replaceSpotlightBundleIDs(_ bundleIDs: [String]) {
         update { $0.spotlightBundleIDs = Array(Set(bundleIDs)).sorted() }
     }
