@@ -65,9 +65,9 @@ struct GeneralTab: View {
                 TransientEnglishRow()
                 TransientEnglishIdleRow()
             } header: {
-                Text("Shift 兜底")
+                Text("Shift 切换系统输入源")
             } footer: {
-                Text("当你手动按 Shift 切到英文后,无任何键盘活动达到设定秒数,会自动切回之前的输入法。继续输入会重置计时,再按 Shift 也能立即切回。覆盖 AutoSwitch 自动检测不到的场景(如 Electron 内嵌终端)。")
+                Text("关闭输入法自带 Shift 中英切换后,单独按 Shift 会在当前中文输入法和 ABC 之间切换。无任何键盘活动达到设定秒数会自动切回之前的中文输入法;Shift+字母或快捷键不会触发。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -176,7 +176,7 @@ private struct TransientEnglishRow: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        Toggle("启用 Shift 兜底", isOn: Binding(
+        Toggle("启用 Shift 切换 ABC/中文输入法", isOn: Binding(
             get: { appState.configStore.config.transientEnglishEnabled },
             set: { appState.configStore.setTransientEnglishEnabled($0) }
         ))

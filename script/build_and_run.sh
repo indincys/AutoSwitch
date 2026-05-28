@@ -3,14 +3,14 @@ set -euo pipefail
 
 MODE="${1:-run}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="AutoSwitch"
+APP_NAME="AutoSwitchDEV"
 PROJECT="$ROOT_DIR/AutoSwitch.xcodeproj"
 SCHEME="AutoSwitch"
 BUILD_DIR="$ROOT_DIR/DerivedData"
 CONFIGURATION="Debug"
 DESTINATION='platform=macOS,arch=arm64'
-APP_BUNDLE="$BUILD_DIR/Build/Products/${CONFIGURATION}/AutoSwitch.app"
-APP_BINARY="$APP_BUNDLE/Contents/MacOS/AutoSwitch"
+APP_BUNDLE="$BUILD_DIR/Build/Products/${CONFIGURATION}/${APP_NAME}.app"
+APP_BINARY="$APP_BUNDLE/Contents/MacOS/${APP_NAME}"
 
 kill_existing() {
   pkill -x "$APP_NAME" >/dev/null 2>&1 || true

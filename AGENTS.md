@@ -23,8 +23,8 @@ AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 26 that sw
 ## Build And Run
 
 ```bash
-./script/build_and_run.sh           # build Debug and launch
-./script/build_and_run.sh --verify  # build, launch, confirm process is alive
+./script/build_and_run.sh           # build Debug as "AutoSwitchDEV" / display name "AutoSwitch DEV" and launch
+./script/build_and_run.sh --verify  # build DEV, launch, confirm process is alive
 xcodebuild test -project AutoSwitch.xcodeproj -scheme AutoSwitch \
   -destination 'platform=macOS,arch=arm64' -derivedDataPath DerivedData
 ```
@@ -52,6 +52,7 @@ Required env vars: `AUTOSWITCH_SIGNING_IDENTITY`, `AUTOSWITCH_REPO`, `AUTOSWITCH
 - Do not store Sparkle private keys, signing certificates, or GitHub tokens in the repository.
 - Settings window must not be always-on-top. It is a normal window the user can move behind other apps.
 - Config persists at `~/Library/Application Support/AutoSwitch/config.json`; on parse failure, back up as `config.corrupt.<timestamp>.json` and start from defaults.
+- Development/test builds must use a distinct app name containing `DEV` instead of the production `AutoSwitch` name, so macOS Accessibility can keep production and test builds authorized separately. Keep release builds named `AutoSwitch`. When testing a development build, the expected workflow is to quit the production app from the background and run the DEV build, without repeatedly deleting or re-authorizing Accessibility entries.
 
 ## Logs
 

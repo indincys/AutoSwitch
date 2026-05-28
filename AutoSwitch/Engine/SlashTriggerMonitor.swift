@@ -15,46 +15,96 @@ final class SlashTriggerMonitor {
     private let isEnabledProvider: () -> Bool
     private let permissionsCheck: () -> Bool
     private let inputSourceController: InputSourceControlling
+    private let eventTapInstallerOverride: (() -> Bool)?
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var healthTimer: Timer?
+    private var installedByOverride = false
     private var didStart = false
 
     private var savedSourceID: String?
     private var inSlashMode = false
+    private var lastInstallFailureReason: String?
 
     init(
         isEnabledProvider: @escaping () -> Bool,
         permissionsCheck: @escaping () -> Bool = { AXIsProcessTrusted() },
-        inputSourceController: InputSourceControlling
+        inputSourceController: InputSourceControlling,
+        eventTapInstallerOverride: (() -> Bool)? = nil
     ) {
         self.isEnabledProvider = isEnabledProvider
         self.permissionsCheck = permissionsCheck
         self.inputSourceController = inputSourceController
+        self.eventTapInstallerOverride = eventTapInstallerOverride
     }
 
     func start() {
         guard !didStart else { return }
-        guard permissionsCheck() else {
-            logger.info("AX not granted; slash trigger will retry later")
-            return
-        }
-        installTap()
+        didStart = true
+        ensureTapRunning()
+        installHealthTimer()
     }
 
     func stop() {
+        clearTap(disable: true)
+        installedByOverride = false
+        healthTimer?.invalidate()
+        healthTimer = nil
+        didStart = false
+    }
+
+    private func clearTap(disable: Bool) {
         if let source = runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
         }
-        if let tap = eventTap {
+        if disable, let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
         }
         runLoopSource = nil
         eventTap = nil
-        didStart = false
+    }
+
+    func ensureTapRunning() {
+        guard didStart else { return }
+        guard permissionsCheck() else {
+            logInstallFailureOnce("AX not granted; slash trigger will retry later")
+            return
+        }
+
+        if let tap = eventTap {
+            guard CFMachPortIsValid(tap) else {
+                logger.info("event tap invalid; reinstalling")
+                clearTap(disable: false)
+                installTap()
+                return
+            }
+            if !CGEvent.tapIsEnabled(tap: tap) {
+                logger.info("re-enabling event tap from health check")
+                CGEvent.tapEnable(tap: tap, enable: true)
+            }
+            return
+        }
+
+        if installedByOverride {
+            return
+        }
+
+        installTap()
     }
 
     private func installTap() {
+        if let eventTapInstallerOverride {
+            if eventTapInstallerOverride() {
+                installedByOverride = true
+                lastInstallFailureReason = nil
+                logger.info("slash trigger monitor started")
+            } else {
+                logInstallFailureOnce("CGEvent.tapCreate failed; slash trigger disabled")
+            }
+            return
+        }
+
         let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
         let refcon = Unmanaged.passUnretained(self).toOpaque()
         guard let tap = CGEvent.tapCreate(
@@ -65,7 +115,7 @@ final class SlashTriggerMonitor {
             callback: slashTriggerEventCallback,
             userInfo: refcon
         ) else {
-            logger.error("CGEvent.tapCreate failed; slash trigger disabled")
+            logInstallFailureOnce("CGEvent.tapCreate failed; slash trigger disabled")
             return
         }
 
@@ -74,8 +124,25 @@ final class SlashTriggerMonitor {
         runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
-        didStart = true
+        lastInstallFailureReason = nil
         logger.info("slash trigger monitor started")
+    }
+
+    private func installHealthTimer() {
+        healthTimer?.invalidate()
+        let timer = Timer(timeInterval: 5, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.ensureTapRunning()
+            }
+        }
+        healthTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func logInstallFailureOnce(_ reason: String) {
+        guard lastInstallFailureReason != reason else { return }
+        lastInstallFailureReason = reason
+        logger.info("\(reason, privacy: .public)")
     }
 
     fileprivate func reenableTapIfNeeded() {

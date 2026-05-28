@@ -119,6 +119,9 @@ app_target.package_product_dependencies << sparkle_dep
 
 common_app_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitch',
+  'PRODUCT_NAME' => 'AutoSwitch',
+  'PRODUCT_MODULE_NAME' => 'AutoSwitch',
+  'APP_DISPLAY_NAME' => 'AutoSwitch',
   'MARKETING_VERSION' => '0.2.0',
   'CURRENT_PROJECT_VERSION' => '7',
   'SWIFT_VERSION' => '6.0',
@@ -136,6 +139,11 @@ common_app_settings = {
 
 app_target.build_configuration_list.build_configurations.each do |config|
   common_app_settings.each { |k, v| config.build_settings[k] = v }
+  if config.name == 'Debug'
+    config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'dev.autoswitch.AutoSwitchDEV'
+    config.build_settings['PRODUCT_NAME'] = 'AutoSwitchDEV'
+    config.build_settings['APP_DISPLAY_NAME'] = 'AutoSwitch DEV'
+  end
   config.build_settings['ARCHS'] = 'arm64'
   config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
   config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
@@ -152,6 +160,7 @@ app_target.resources_build_phase.add_file_reference(assets_ref)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
+  'TEST_HOST_APP_NAME' => 'AutoSwitch',
   'MARKETING_VERSION' => '0.2.0',
   'CURRENT_PROJECT_VERSION' => '7',
   'SWIFT_VERSION' => '6.0',
@@ -162,12 +171,15 @@ common_test_settings = {
   'DEVELOPMENT_TEAM' => '',
   'GENERATE_INFOPLIST_FILE' => 'YES',
   'ENABLE_TESTABILITY' => 'YES',
-  'TEST_HOST' => '$(BUILT_PRODUCTS_DIR)/AutoSwitch.app/Contents/MacOS/AutoSwitch',
+  'TEST_HOST' => '$(BUILT_PRODUCTS_DIR)/$(TEST_HOST_APP_NAME).app/Contents/MacOS/$(TEST_HOST_APP_NAME)',
   'BUNDLE_LOADER' => '$(TEST_HOST)'
 }
 
 test_target.build_configuration_list.build_configurations.each do |config|
   common_test_settings.each { |k, v| config.build_settings[k] = v }
+  if config.name == 'Debug'
+    config.build_settings['TEST_HOST_APP_NAME'] = 'AutoSwitchDEV'
+  end
   config.build_settings['ARCHS'] = 'arm64'
   config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
   config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'

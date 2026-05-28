@@ -17,6 +17,8 @@ final class FocusCoordinator {
     private var tuiPromptDetected: Bool = false
     private var tuiPromptBundleID: String?
 
+    var onDecisionResolved: ((SwitchDecision) -> Void)?
+
     init(
         configStore: ConfigStore,
         inputSourceController: InputSourceControlling,
@@ -132,6 +134,7 @@ final class FocusCoordinator {
             return
         }
 
+        onDecisionResolved?(decision)
         scheduler.schedule(decision)
     }
 }

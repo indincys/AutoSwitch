@@ -189,6 +189,9 @@ final class AppState: ObservableObject {
         loginItemManager.refresh()
         updaterController.startUpdater()
 
+        focusCoordinator.onDecisionResolved = { [weak self] decision in
+            self?.transientEnglishMonitor.handleFocusDecision(decision)
+        }
         appActivationMonitor.start()
         lockScreenMonitor.start()
         spotlightPanelMonitor.start()
