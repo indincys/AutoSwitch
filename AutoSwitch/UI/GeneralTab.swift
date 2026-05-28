@@ -46,7 +46,7 @@ struct GeneralTab: View {
             } header: {
                 Text("终端识别")
             } footer: {
-                Text("焦点元素当前行以 shell 提示符开头(如 bash-5.3$、host:dir user$)时自动切英文。停止匹配时回退到 app 规则,不会强行改回中文。")
+                Text("仅在常见终端类应用中识别命令提示符,例如 user@host path %、~/repo $、➜ repo。Codex/Claude 的 TUI 输入提示不会被当作 shell prompt。停止匹配时回退到 app 规则。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

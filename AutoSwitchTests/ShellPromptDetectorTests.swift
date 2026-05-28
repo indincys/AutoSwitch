@@ -2,6 +2,13 @@ import XCTest
 @testable import AutoSwitch
 
 final class ShellPromptDetectorTests: XCTestCase {
+    func testPromptDetectionTargetsAreTerminalScoped() {
+        XCTAssertTrue(PromptDetectionTargetBundles.contains("com.apple.Terminal"))
+        XCTAssertTrue(PromptDetectionTargetBundles.contains("com.mitchellh.ghostty"))
+        XCTAssertFalse(PromptDetectionTargetBundles.contains("com.apple.finder"))
+        XCTAssertFalse(PromptDetectionTargetBundles.contains(nil))
+    }
+
     // MARK: - Real-world prompts from screenshots
 
     func testBashVersionPrompt() {
@@ -80,12 +87,28 @@ final class ShellPromptDetectorTests: XCTestCase {
         XCTAssertTrue(ShellPromptDetector.detect(in: "[root@server log]# "))
     }
 
-    func testPureSymbolPromptCurrentlyUnsupported() {
-        // Pure-glyph prompts (starship, oh-my-zsh) are not auto-detected for now
-        // because Claude Code TUI uses › as its input marker — see ShellPromptDetector
-        // comment block.
-        XCTAssertFalse(ShellPromptDetector.detect(in: "❯ "))
-        XCTAssertFalse(ShellPromptDetector.detect(in: "➜ "))
+    func testUserAtHostPathPrompt() {
+        XCTAssertTrue(ShellPromptDetector.detect(in: "indincys@mac ~/repo % git status"))
+        XCTAssertTrue(ShellPromptDetector.detect(in: "root@server /var/log # tail syslog"))
+    }
+
+    func testPathPrompt() {
+        XCTAssertTrue(ShellPromptDetector.detect(in: "~/repo $ make test"))
+        XCTAssertTrue(ShellPromptDetector.detect(in: "/var/log # tail system.log"))
+        XCTAssertTrue(ShellPromptDetector.detect(in: "project/subdir % git status"))
+    }
+
+    func testPlainShellPromptRequiresTrailingSpace() {
+        XCTAssertTrue(ShellPromptDetector.detect(in: "$ ls"))
+        XCTAssertTrue(ShellPromptDetector.detect(in: "% git status"))
+        XCTAssertFalse(ShellPromptDetector.detect(in: "$"))
+        XCTAssertFalse(ShellPromptDetector.detect(in: "$100"))
+    }
+
+    func testCommonGlyphPrompts() {
+        XCTAssertTrue(ShellPromptDetector.detect(in: "❯ git status"))
+        XCTAssertTrue(ShellPromptDetector.detect(in: "➜ repo git:(main)"))
+        XCTAssertTrue(ShellPromptDetector.detect(in: "λ cabal build"))
     }
 
     func testClaudeCodeTUIPromptDoesNotFalsePositive() {
@@ -93,6 +116,8 @@ final class ShellPromptDetectorTests: XCTestCase {
         XCTAssertFalse(ShellPromptDetector.detect(in: "› "))
         XCTAssertFalse(ShellPromptDetector.detect(in: "› hello"))
         XCTAssertFalse(ShellPromptDetector.detect(in: "› 请帮我修复"))
+        XCTAssertFalse(ShellPromptDetector.detect(in: "│ › 请帮我修复"))
+        XCTAssertFalse(ShellPromptDetector.detect(in: "> hello"))
     }
 
     // MARK: - TUI prompt detection (Chinese override)

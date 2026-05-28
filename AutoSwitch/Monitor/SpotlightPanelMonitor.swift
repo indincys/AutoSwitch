@@ -10,10 +10,13 @@ final class SpotlightPanelMonitor: NSObject {
     private var didStart = false
     private var observerContexts: [String: ObserverContext] = [:]
     private var visibilityTimer: Timer?
+    private var visibilityPollsRemaining = 0
     private var visibleBundleIDs: Set<String> = []
     private var monitoredBundleIDs: [String] = []
     private var monitoredBundleIDSet: Set<String> = []
     private let notificationCenter = NSWorkspace.shared.notificationCenter
+    private let visibilityPollInterval: TimeInterval = 0.5
+    private let visibilityPollBurstCount = 8
 
     init(
         bundleIDsProvider: @escaping () -> [String],
@@ -35,8 +38,7 @@ final class SpotlightPanelMonitor: NSObject {
         didStart = true
         logger.info("starting spotlight monitor")
         refreshObservers()
-        startVisibilityPolling()
-        reconcileVisibility(reason: "startup")
+        triggerVisibilityPolling(reason: "startup")
 
         let notifications: [NSNotification.Name] = [
             NSWorkspace.didLaunchApplicationNotification,
@@ -55,7 +57,7 @@ final class SpotlightPanelMonitor: NSObject {
 
     @objc private func handleRefreshNotification(_ notification: Notification) {
         refreshObservers()
-        reconcileVisibility(reason: "workspace change")
+        triggerVisibilityPolling(reason: "workspace change")
     }
 
     func refreshObservers() {
@@ -86,12 +88,20 @@ final class SpotlightPanelMonitor: NSObject {
             logger.info("registered spotlight observer for \(bundleID, privacy: .public)")
             observerContexts[bundleID] = observer
         }
+
+        triggerVisibilityPolling(reason: "observers refreshed")
+    }
+
+    private func triggerVisibilityPolling(reason: String) {
+        reconcileVisibility(reason: reason)
+        visibilityPollsRemaining = max(visibilityPollsRemaining, visibilityPollBurstCount)
+        startVisibilityPolling()
     }
 
     private func startVisibilityPolling() {
         guard visibilityTimer == nil else { return }
         visibilityTimer = Timer.scheduledTimer(
-            timeInterval: 1.0,
+            timeInterval: visibilityPollInterval,
             target: self,
             selector: #selector(handleVisibilityTimer(_:)),
             userInfo: nil,
@@ -100,7 +110,15 @@ final class SpotlightPanelMonitor: NSObject {
     }
 
     @objc private func handleVisibilityTimer(_ timer: Timer) {
-        reconcileVisibility(reason: "poll")
+        reconcileVisibility(reason: "burst poll")
+        if visibilityPollsRemaining > 0 {
+            visibilityPollsRemaining -= 1
+        }
+        if visibilityPollsRemaining <= 0 && visibleBundleIDs.isEmpty {
+            visibilityTimer?.invalidate()
+            visibilityTimer = nil
+            visibilityPollsRemaining = 0
+        }
     }
 
     private func reconcileVisibility(reason: String) {
@@ -195,10 +213,10 @@ final class SpotlightPanelMonitor: NSObject {
             guard let refcon else { return }
             let context = Unmanaged<ObserverContext>.fromOpaque(refcon).takeUnretainedValue()
             let name = notification as String
-            if name == kAXWindowCreatedNotification as String || name == kAXMainWindowChangedNotification as String {
-                context.handler(.panelShown(bundleID: context.bundleID))
-            } else if name == kAXUIElementDestroyedNotification as String {
-                context.handler(.panelHidden(bundleID: context.bundleID))
+            if name == kAXWindowCreatedNotification as String
+                || name == kAXMainWindowChangedNotification as String
+                || name == kAXUIElementDestroyedNotification as String {
+                context.visibilityHandler("AX \(name)")
             }
         }
 
@@ -209,7 +227,14 @@ final class SpotlightPanelMonitor: NSObject {
         }
 
         let appElement = AXUIElementCreateApplication(pid)
-        let context = ObserverContext(bundleID: bundleID, pid: pid, observer: observer, handler: eventHandler)
+        let context = ObserverContext(
+            bundleID: bundleID,
+            pid: pid,
+            observer: observer,
+            visibilityHandler: { [weak self] reason in
+                self?.triggerVisibilityPolling(reason: reason)
+            }
+        )
         let refcon = Unmanaged.passRetained(context).toOpaque()
         context.refcon = refcon
         let notifications = [
@@ -236,14 +261,19 @@ final class SpotlightPanelMonitor: NSObject {
         let bundleID: String
         let pid: pid_t
         let observer: AXObserver
-        let handler: (FocusEvent) -> Void
+        let visibilityHandler: (String) -> Void
         var refcon: UnsafeMutableRawPointer?
 
-        init(bundleID: String, pid: pid_t, observer: AXObserver, handler: @escaping (FocusEvent) -> Void) {
+        init(
+            bundleID: String,
+            pid: pid_t,
+            observer: AXObserver,
+            visibilityHandler: @escaping (String) -> Void
+        ) {
             self.bundleID = bundleID
             self.pid = pid
             self.observer = observer
-            self.handler = handler
+            self.visibilityHandler = visibilityHandler
         }
 
         var runLoopSource: CFRunLoopSource? {

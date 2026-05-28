@@ -1,24 +1,58 @@
 import AppKit
 import ApplicationServices
+import CoreGraphics
 import Foundation
 import os.log
+
+enum PromptDetectionTargetBundles {
+    static let defaultBundleIDs: Set<String> = [
+        "com.apple.Terminal",
+        "com.googlecode.iterm2",
+        "com.mitchellh.ghostty",
+        "com.github.wez.wezterm",
+        "org.alacritty",
+        "net.kovidgoyal.kitty",
+        "dev.warp.Warp",
+        "dev.warp.Warp-Stable",
+        "dev.warp.Warp-Preview",
+        "co.zeit.hyper",
+        "app.hyper.is",
+        "com.github.Eugeny.tabby",
+        "com.raphamorim.rio"
+    ]
+
+    static func contains(_ bundleID: String?) -> Bool {
+        guard let bundleID else { return false }
+        return defaultBundleIDs.contains(bundleID)
+    }
+}
 
 @MainActor
 final class FocusedElementMonitor {
     private let logger = Logger(subsystem: "dev.autoswitch", category: "focused-element")
     private let isEnabledProvider: () -> Bool
     private let permissionsCheck: () -> Bool
+    private let targetBundleIDsProvider: () -> Set<String>
     private let eventHandler: (FocusEvent) -> Void
     private let pollInterval: TimeInterval
+    private let pollBurstDuration: TimeInterval
 
-    private var timer: Timer?
+    private var pollTimer: Timer?
+    private var pollDeadline: Date?
+    private var eventTap: CFMachPort?
+    private var runLoopSource: CFRunLoopSource?
+    private var axObserver: AXObserver?
+    private var axRunLoopSource: CFRunLoopSource?
     private var didStart = false
+    private var activeBundleID: String?
+    private var activePID: pid_t?
     private var lastReportedShell: Bool?
     private var lastReportedTUI: Bool?
     private var lastReportedBundleID: String?
     private var lastDiagnosticBundleID: String?
     private var lastDiagnosticAt: Date?
     private var enhancedUITriedPIDs: Set<pid_t> = []
+    private var lastInstallFailureReason: String?
 
     /// Undocumented but well-known accessibility attribute names. Setting these
     /// to YES on an Electron/Chromium app element triggers it to populate its
@@ -31,61 +65,145 @@ final class FocusedElementMonitor {
     init(
         isEnabledProvider: @escaping () -> Bool,
         permissionsCheck: @escaping () -> Bool = { AXIsProcessTrusted() },
+        targetBundleIDsProvider: @escaping () -> Set<String> = { PromptDetectionTargetBundles.defaultBundleIDs },
         eventHandler: @escaping (FocusEvent) -> Void,
-        pollInterval: TimeInterval = 0.3
+        pollInterval: TimeInterval = 0.3,
+        pollBurstDuration: TimeInterval = 6.0
     ) {
         self.isEnabledProvider = isEnabledProvider
         self.permissionsCheck = permissionsCheck
+        self.targetBundleIDsProvider = targetBundleIDsProvider
         self.eventHandler = eventHandler
         self.pollInterval = pollInterval
+        self.pollBurstDuration = pollBurstDuration
     }
 
     func start() {
         guard !didStart else { return }
         didStart = true
-        logger.info("starting focused element monitor (poll=\(self.pollInterval, privacy: .public)s)")
-        installTimer()
+        logger.info("starting focused element monitor (burst-poll=\(self.pollInterval, privacy: .public)s)")
+        refreshActiveApplication(reason: "startup")
     }
 
     func stop() {
-        timer?.invalidate()
-        timer = nil
+        stopKeyTap(disable: true)
+        stopActiveMonitoring(clearDetections: true)
         didStart = false
     }
 
     /// Force an immediate detection pass. Useful right after config changes.
     func reevaluate() {
-        tick()
+        refreshActiveApplication(reason: "reevaluate")
     }
 
-    private func installTimer() {
-        timer?.invalidate()
-        let t = Timer(timeInterval: pollInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.tick()
-            }
+    func handleAppActivation(bundleID: String?) {
+        guard didStart else { return }
+        if let bundleID, !isTargetBundle(bundleID) {
+            stopActiveMonitoring(clearDetections: true)
+            return
         }
-        timer = t
-        RunLoop.main.add(t, forMode: .common)
+        refreshActiveApplication(reason: "app activation")
     }
 
-    private func tick() {
+    fileprivate func handleKeyActivity() {
+        guard activeBundleID != nil else { return }
+        guard currentFrontmostApp().map({ isTargetBundle($0.bundleIdentifier) }) == true else {
+            stopActiveMonitoring(clearDetections: true)
+            return
+        }
+        triggerDetectionBurst(reason: "key activity")
+    }
+
+    fileprivate func reenableKeyTapIfNeeded() {
+        guard let eventTap else { return }
+        if !CGEvent.tapIsEnabled(tap: eventTap) {
+            logger.info("re-enabling focused element key tap")
+            CGEvent.tapEnable(tap: eventTap, enable: true)
+        }
+    }
+
+    private func refreshActiveApplication(reason: String) {
+        guard didStart else { return }
         guard isEnabledProvider() else {
-            clearAllReportedDetections()
+            stopActiveMonitoring(clearDetections: true)
             return
         }
         guard permissionsCheck() else {
             logDiagnosticIfNeeded(bundleID: nil, kind: "AX-not-trusted", text: "")
+            stopActiveMonitoring(clearDetections: true)
+            return
+        }
+        guard let app = currentFrontmostApp(), let bundleID = app.bundleIdentifier else {
+            stopActiveMonitoring(clearDetections: true)
+            logDiagnosticIfNeeded(bundleID: nil, kind: "no-frontmost-app", text: "")
+            return
+        }
+        guard isTargetBundle(bundleID), !FrontmostApplicationResolver.shouldIgnore(bundleID: bundleID) else {
+            stopActiveMonitoring(clearDetections: true)
+            logDiagnosticIfNeeded(bundleID: bundleID, kind: "not-prompt-target", text: "")
             return
         }
 
-        guard let app = NSWorkspace.shared.frontmostApplication else {
-            clearAllReportedDetections(bundleID: nil)
+        ensureKeyTapRunning()
+        if activePID != app.processIdentifier || activeBundleID != bundleID {
+            installAXObserver(for: app.processIdentifier, bundleID: bundleID)
+            activePID = app.processIdentifier
+            activeBundleID = bundleID
+        }
+        triggerDetectionBurst(reason: reason)
+    }
+
+    private func triggerDetectionBurst(reason: String) {
+        pollDeadline = Date().addingTimeInterval(pollBurstDuration)
+        tick(reason: reason)
+        installPollTimerIfNeeded()
+    }
+
+    private func installPollTimerIfNeeded() {
+        guard pollTimer == nil else { return }
+        let timer = Timer(timeInterval: pollInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handlePollTimer()
+            }
+        }
+        pollTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func handlePollTimer() {
+        if let pollDeadline, Date() <= pollDeadline {
+            tick(reason: "burst poll")
+            return
+        }
+        pollTimer?.invalidate()
+        pollTimer = nil
+        pollDeadline = nil
+    }
+
+    private func tick(reason: String) {
+        guard isEnabledProvider() else {
+            stopActiveMonitoring(clearDetections: true)
+            return
+        }
+        guard permissionsCheck() else {
+            logDiagnosticIfNeeded(bundleID: nil, kind: "AX-not-trusted", text: "")
+            stopActiveMonitoring(clearDetections: true)
+            return
+        }
+
+        guard let app = currentFrontmostApp() else {
+            stopActiveMonitoring(clearDetections: true)
             logDiagnosticIfNeeded(bundleID: nil, kind: "no-frontmost-app", text: "")
             return
         }
         let bundleID = app.bundleIdentifier
+        if !isTargetBundle(bundleID) {
+            stopActiveMonitoring(clearDetections: true)
+            logDiagnosticIfNeeded(bundleID: bundleID, kind: "not-prompt-target", text: "")
+            return
+        }
         if let bundleID, FrontmostApplicationResolver.shouldIgnore(bundleID: bundleID) {
+            stopActiveMonitoring(clearDetections: true)
             logDiagnosticIfNeeded(bundleID: bundleID, kind: "ignored", text: "")
             return
         }
@@ -104,15 +222,15 @@ final class FocusedElementMonitor {
             }
             // Fallback: focused element is unknown — try walking the focused/main
             // window's subtree and look for shell prompts anywhere visible. This
-            // covers Codex Desktop / Claude Desktop, which expose AXMainWindow
-            // even though they refuse to report AXFocusedUIElement.
+            // covers Electron-style terminal apps that expose AXMainWindow even
+            // when they refuse to report AXFocusedUIElement.
             let fallbackText = collectWindowFallbackText(appElement: appElement, bundleID: bundleID)
             if !fallbackText.isEmpty {
                 let shell = ShellPromptDetector.detect(in: fallbackText, scanAllLines: true)
                 let tui = ShellPromptDetector.detectTUIPrompt(in: fallbackText, scanAllLines: true)
                 logDiagnosticIfNeeded(
                     bundleID: bundleID,
-                    kind: "window-fallback len=\(fallbackText.count) shell=\(shell) tui=\(tui)",
+                    kind: "\(reason) window-fallback len=\(fallbackText.count) shell=\(shell) tui=\(tui)",
                     text: fallbackText
                 )
                 reportDetections(shell: shell, tui: tui, bundleID: bundleID)
@@ -121,7 +239,7 @@ final class FocusedElementMonitor {
             clearAllReportedDetections(bundleID: bundleID)
             logDiagnosticIfNeeded(
                 bundleID: bundleID,
-                kind: "ax-no-focused-element status=\(focusedStatus.rawValue) no-window-fallback",
+                kind: "\(reason) ax-no-focused-element status=\(focusedStatus.rawValue) no-window-fallback",
                 text: ""
             )
             return
@@ -135,10 +253,131 @@ final class FocusedElementMonitor {
         } else {
             kind = "ok role=\(describeRole(focused))"
         }
-        logDiagnosticIfNeeded(bundleID: bundleID, kind: kind, text: text)
+        logDiagnosticIfNeeded(bundleID: bundleID, kind: "\(reason) \(kind)", text: text)
         let shell = ShellPromptDetector.detect(in: text)
         let tui = ShellPromptDetector.detectTUIPrompt(in: text)
         reportDetections(shell: shell, tui: tui, bundleID: bundleID)
+    }
+
+    private func isTargetBundle(_ bundleID: String?) -> Bool {
+        guard let bundleID else { return false }
+        return targetBundleIDsProvider().contains(bundleID)
+    }
+
+    private func currentFrontmostApp() -> NSRunningApplication? {
+        NSWorkspace.shared.frontmostApplication
+    }
+
+    private func stopActiveMonitoring(clearDetections: Bool) {
+        pollTimer?.invalidate()
+        pollTimer = nil
+        pollDeadline = nil
+        removeAXObserver()
+        stopKeyTap(disable: true)
+        activeBundleID = nil
+        activePID = nil
+        if clearDetections {
+            clearAllReportedDetections()
+        }
+    }
+
+    private func ensureKeyTapRunning() {
+        guard eventTap == nil else {
+            if let eventTap, !CGEvent.tapIsEnabled(tap: eventTap) {
+                CGEvent.tapEnable(tap: eventTap, enable: true)
+            }
+            return
+        }
+
+        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
+        let refcon = Unmanaged.passUnretained(self).toOpaque()
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .listenOnly,
+            eventsOfInterest: mask,
+            callback: focusedElementKeyTapCallback,
+            userInfo: refcon
+        ) else {
+            logInstallFailureOnce("CGEvent.tapCreate failed for focused element key tap")
+            return
+        }
+
+        eventTap = tap
+        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        runLoopSource = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+        lastInstallFailureReason = nil
+    }
+
+    private func stopKeyTap(disable: Bool) {
+        if let source = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+        }
+        if disable, let eventTap {
+            CGEvent.tapEnable(tap: eventTap, enable: false)
+        }
+        runLoopSource = nil
+        eventTap = nil
+    }
+
+    private func installAXObserver(for pid: pid_t, bundleID: String) {
+        removeAXObserver()
+
+        var observer: AXObserver?
+        let callback: AXObserverCallback = { _, _, notification, refcon in
+            guard let refcon else { return }
+            let monitor = Unmanaged<FocusedElementMonitor>.fromOpaque(refcon).takeUnretainedValue()
+            let reason = "AX \(notification as String)"
+            DispatchQueue.main.async {
+                Task { @MainActor in
+                    monitor.triggerDetectionBurst(reason: reason)
+                }
+            }
+        }
+
+        let error = AXObserverCreate(pid, callback, &observer)
+        guard error == .success, let observer else {
+            logger.error("failed to create AX focused element observer for \(bundleID, privacy: .public)")
+            return
+        }
+
+        let appElement = AXUIElementCreateApplication(pid)
+        let refcon = Unmanaged.passUnretained(self).toOpaque()
+        let notifications = [
+            kAXFocusedUIElementChangedNotification,
+            kAXFocusedWindowChangedNotification,
+            kAXMainWindowChangedNotification,
+            kAXSelectedTextChangedNotification,
+            kAXValueChangedNotification
+        ]
+
+        for notification in notifications {
+            let status = AXObserverAddNotification(observer, appElement, notification as CFString, refcon)
+            if status == .success {
+                logger.info("added \(notification as String, privacy: .public) for prompt target \(bundleID, privacy: .public)")
+            }
+        }
+
+        let source = AXObserverGetRunLoopSource(observer)
+        axObserver = observer
+        axRunLoopSource = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+    }
+
+    private func removeAXObserver() {
+        if let source = axRunLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+        }
+        axRunLoopSource = nil
+        axObserver = nil
+    }
+
+    private func logInstallFailureOnce(_ reason: String) {
+        guard lastInstallFailureReason != reason else { return }
+        lastInstallFailureReason = reason
+        logger.info("\(reason, privacy: .public)")
     }
 
     private func logDiagnosticIfNeeded(bundleID: String?, kind: String, text: String) {
@@ -309,4 +548,29 @@ final class FocusedElementMonitor {
         guard status == .success, let raw else { return nil }
         return raw as? [AXUIElement]
     }
+}
+
+private let focusedElementKeyTapCallback: CGEventTapCallBack = { _, type, event, refcon in
+    guard let refcon else { return Unmanaged.passUnretained(event) }
+    let monitor = Unmanaged<FocusedElementMonitor>.fromOpaque(refcon).takeUnretainedValue()
+
+    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+        DispatchQueue.main.async {
+            Task { @MainActor in
+                monitor.reenableKeyTapIfNeeded()
+            }
+        }
+        return Unmanaged.passUnretained(event)
+    }
+
+    guard type == .keyDown else {
+        return Unmanaged.passUnretained(event)
+    }
+
+    DispatchQueue.main.async {
+        Task { @MainActor in
+            monitor.handleKeyActivity()
+        }
+    }
+    return Unmanaged.passUnretained(event)
 }

@@ -34,6 +34,9 @@ resources_group.source_tree = '<group>'
 assets_ref = resources_group.new_file('Assets.xcassets')
 assets_ref.last_known_file_type = 'folder.assetcatalog'
 assets_ref.source_tree = '<group>'
+icon_ref = resources_group.new_file('AutoSwitchIcon.icns')
+icon_ref.last_known_file_type = 'image.icns'
+icon_ref.source_tree = '<group>'
 
 app_files = %w[
   App/AutoSwitchApp.swift
@@ -122,8 +125,8 @@ common_app_settings = {
   'PRODUCT_NAME' => 'AutoSwitch',
   'PRODUCT_MODULE_NAME' => 'AutoSwitch',
   'APP_DISPLAY_NAME' => 'AutoSwitch',
-  'MARKETING_VERSION' => '0.2.0',
-  'CURRENT_PROJECT_VERSION' => '7',
+  'MARKETING_VERSION' => '0.2.1',
+  'CURRENT_PROJECT_VERSION' => '8',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',
@@ -133,12 +136,13 @@ common_app_settings = {
   'GENERATE_INFOPLIST_FILE' => 'NO',
   'INFOPLIST_FILE' => 'AutoSwitch/App/Info.plist',
   'SWIFT_EMIT_LOC_STRINGS' => 'YES',
-  'DEAD_CODE_STRIPPING' => 'YES',
-  'ASSETCATALOG_COMPILER_APPICON_NAME' => 'AppIcon'
+  'DEAD_CODE_STRIPPING' => 'YES'
 }
 
 app_target.build_configuration_list.build_configurations.each do |config|
   common_app_settings.each { |k, v| config.build_settings[k] = v }
+  config.build_settings.delete('ASSETCATALOG_COMPILER_APPICON_NAME')
+  config.build_settings.delete('ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME')
   if config.name == 'Debug'
     config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'dev.autoswitch.AutoSwitchDEV'
     config.build_settings['PRODUCT_NAME'] = 'AutoSwitchDEV'
@@ -157,12 +161,13 @@ end
 app_target.source_build_phase.files.clear
 app_file_refs.each { |ref| app_target.add_file_references([ref]) }
 app_target.resources_build_phase.add_file_reference(assets_ref)
+app_target.resources_build_phase.add_file_reference(icon_ref)
 
 common_test_settings = {
   'PRODUCT_BUNDLE_IDENTIFIER' => 'dev.autoswitch.AutoSwitchTests',
   'TEST_HOST_APP_NAME' => 'AutoSwitch',
-  'MARKETING_VERSION' => '0.2.0',
-  'CURRENT_PROJECT_VERSION' => '7',
+  'MARKETING_VERSION' => '0.2.1',
+  'CURRENT_PROJECT_VERSION' => '8',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
   'MACOSX_DEPLOYMENT_TARGET' => '26.0',

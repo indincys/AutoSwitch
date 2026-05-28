@@ -2,8 +2,8 @@ import Foundation
 
 struct ShellPromptDetector {
     /// True when the line containing the cursor (= the trailing line of `text`)
-    /// starts with a recognized **shell** prompt (host:path user$, bash-X.Y$,
-    /// etc.). Allowing arbitrary content after the prompt means typing a
+    /// starts with a recognized terminal command prompt (host:path user$,
+    /// user@host dir %, ➜ repo, plain "$ ", etc.). Allowing arbitrary content after the prompt means typing a
     /// command keeps the detection active until something fundamentally
     /// changes the line (e.g. a TUI takes over).
     ///
@@ -31,13 +31,19 @@ struct ShellPromptDetector {
         #"^[^\s\n:]+:[^\s\n]*\s+[^\s\n]+[$#%](?:$|\s)"#,
         // user@host:path$ at line start, e.g. "root@server:/var/log# "
         #"^[^\s@\n]+@[^\s:\n]+:[^\s\n]*[$#%](?:$|\s)"#,
+        // user@host path % at line start, e.g. "indincys@mac ~/repo % git status"
+        #"^[^\s@\n]+@[^\s\n]+\s+[^\n]*[$#%](?:$|\s)"#,
         // [user@host dir]$ at line start
         #"^\[[^\]\n]+@[^\]\n]+\s+[^\]\n]+\][$#%](?:$|\s)"#,
         // bash-5.3$, zsh-5.9# style at line start
-        #"^(?:bash|zsh|sh|dash|ksh|fish|ash)-?\d+(?:\.\d+)*[$#](?:$|\s)"#
-        // Pure prompt glyphs (^[❯➜λ➤...]) are intentionally excluded — Claude
-        // Code TUI uses › and would false-positive into shell-prompt → English
-        // mode. Glyph-based TUI prompts are handled by `tuiPatterns` instead.
+        #"^(?:bash|zsh|sh|dash|ksh|fish|ash)-?\d+(?:\.\d+)*[$#%](?:$|\s)"#,
+        // path-like prompt, e.g. "~/repo $", "/var/log #", "project/subdir %"
+        #"^(?:~|/|\.{1,2}|[A-Za-z0-9_.-]+/)[^\n]*\s[$#%](?:$|\s)"#,
+        // plain shell prompt with a required trailing space; "$100" and bare "$" do not match.
+        #"^[$#%]\s"#,
+        // Common theme/starship/oh-my-zsh glyph prompts. Intentionally excludes
+        // "›" and plain ">" because Codex/Claude TUI input prompts use those shapes.
+        #"^[\s]*(?:❯|❱|➜|➟|➤|▶|λ)(?:$|\s)"#
     ]
 
     /// TUI prompts that mean "this is an AI CLI input box, use Chinese". Kept

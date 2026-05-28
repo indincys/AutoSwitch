@@ -103,6 +103,7 @@ final class AppState: ObservableObject {
     }
 
     lazy var appActivationMonitor = AppActivationMonitor { [weak self] bundleID in
+        self?.focusedElementMonitor.handleAppActivation(bundleID: bundleID)
         self?.focusCoordinator.handleAppActivation(bundleID: bundleID)
     }
 
@@ -159,6 +160,7 @@ final class AppState: ObservableObject {
             guard let self else { return }
             self.focusCoordinator.reconcileCurrentFocus(reason: "config changed")
             self.spotlightPanelMonitor.refreshObservers()
+            self.focusedElementMonitor.reevaluate()
             if !isTestEnvironment {
                 self.statusBarController.updateVisibility()
             }
