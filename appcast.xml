@@ -6,11 +6,11 @@
     <description>AutoSwitch 更新源</description>
     <language>zh-CN</language>
     <item>
-      <title>AutoSwitch 7</title>
-      <pubDate>Wed, 27 May 2026 15:26:08 +0000</pubDate>
-      <enclosure url="https://github.com/indincys/AutoSwitch/releases/download/v0.2.0/AutoSwitch.zip" sparkle:version="7" sparkle:shortVersionString="0.2.0" length="2200050" type="application/zip" sparkle:edSignature="uR3Pd4i+n58vmxImnUMIQVDhxKNe4P68R9IjOdRaB+slE3q3nNbtuWNWVCP6m8RCeWXqYcXxDSaWh4nhyJyTDA==" />
+      <title>AutoSwitch 8</title>
+      <pubDate>Thu, 28 May 2026 13:13:24 +0000</pubDate>
+      <enclosure url="https://github.com/indincys/AutoSwitch/releases/download/v0.2.1/AutoSwitch.zip" sparkle:version="8" sparkle:shortVersionString="0.2.1" length="2963350" type="application/zip" sparkle:edSignature="kfyRP9ztl2GEavkhkV35slUuxjNBDQMBer8XjPkWmA+I1ptSqBqNvv/pyFWsfsBxc2iRF+ffnBFF4j2n2TI8AA==" />
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <link>https://github.com/indincys/AutoSwitch/releases/tag/v0.2.0</link>
+      <link>https://github.com/indincys/AutoSwitch/releases/tag/v0.2.1</link>
     </item>
   </channel>
 </rss>
