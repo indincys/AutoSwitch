@@ -193,6 +193,7 @@ final class AppState: ObservableObject {
 
         focusCoordinator.onDecisionResolved = { [weak self] decision in
             self?.transientEnglishMonitor.handleFocusDecision(decision)
+            self?.slashTriggerMonitor.noteContextReset()
         }
         appActivationMonitor.start()
         lockScreenMonitor.start()

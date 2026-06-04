@@ -138,6 +138,79 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
     }
 
     @MainActor
+    private func makeSlashMonitor(_ controller: StubController) -> SlashTriggerMonitor {
+        SlashTriggerMonitor(
+            isEnabledProvider: { true },
+            permissionsCheck: { true },
+            inputSourceController: controller,
+            eventTapInstallerOverride: { true }
+        )
+    }
+
+    @MainActor
+    private func chineseAndAsciiController() -> StubController {
+        let controller = StubController()
+        controller.availableInputSources = [
+            makeSource(id: "wechat", kind: .chinese),
+            makeSource(id: "abc", kind: .ascii)
+        ]
+        controller.currentInputSourceIDValue = "wechat"
+        return controller
+    }
+
+    @MainActor
+    func testSlashAtLineStartSwitchesToEnglishThenSpaceRestores() {
+        let controller = chineseAndAsciiController()
+        let monitor = makeSlashMonitor(controller)
+        monitor.start()
+
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertEqual(controller.selected, ["abc"])
+
+        monitor.handleKey(keycode: 49, typed: " ")
+        XCTAssertEqual(controller.selected, ["abc", "wechat"])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testSlashMidLineDoesNotSwitch() {
+        let controller = chineseAndAsciiController()
+        let monitor = makeSlashMonitor(controller)
+        monitor.start()
+
+        monitor.handleKey(keycode: 0, typed: "a") // content keystroke → no longer line start
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertTrue(controller.selected.isEmpty)
+        monitor.stop()
+    }
+
+    @MainActor
+    func testEnterReArmsLineStartForSlash() {
+        let controller = chineseAndAsciiController()
+        let monitor = makeSlashMonitor(controller)
+        monitor.start()
+
+        monitor.handleKey(keycode: 0, typed: "a")   // content → mid line
+        monitor.handleKey(keycode: 36, typed: "\r") // return → fresh line
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertEqual(controller.selected, ["abc"])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testNoteContextResetReArmsLineStartForSlash() {
+        let controller = chineseAndAsciiController()
+        let monitor = makeSlashMonitor(controller)
+        monitor.start()
+
+        monitor.handleKey(keycode: 0, typed: "a") // content → mid line
+        monitor.noteContextReset()                 // focus moved to a fresh field
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertEqual(controller.selected, ["abc"])
+        monitor.stop()
+    }
+
+    @MainActor
     func testTransientEnglishRetriesAfterTapInstallFailure() {
         let controller = StubController()
         var installAttempts = 0

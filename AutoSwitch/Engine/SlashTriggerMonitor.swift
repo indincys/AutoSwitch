@@ -9,6 +9,12 @@ import os.log
 /// active before. Useful for slash commands in Claude Code, Codex CLI, and
 /// similar tools where you usually want to type the command in English even
 /// when the surrounding context is Chinese.
+///
+/// The `/` only arms when the caret is at the **start of a line**, so a `/`
+/// typed mid-sentence (e.g. inside Chinese prose) is left alone. "Line start"
+/// is tracked purely from the keystrokes this tap already receives — no polling,
+/// no AX caret queries: it resets on return / enter, on focus changes via
+/// `noteContextReset()`, and is cleared by the first printable key on the line.
 @MainActor
 final class SlashTriggerMonitor {
     private let logger = Logger(subsystem: "dev.autoswitch", category: "slash-trigger")
@@ -25,6 +31,7 @@ final class SlashTriggerMonitor {
 
     private var savedSourceID: String?
     private var inSlashMode = false
+    private var atLineStart = true
     private var lastInstallFailureReason: String?
 
     init(
@@ -153,22 +160,50 @@ final class SlashTriggerMonitor {
         }
     }
 
-    fileprivate func handleKey(keycode: Int64, typed: String) {
+    func handleKey(keycode: Int64, typed: String) {
         guard isEnabledProvider() else {
             if inSlashMode { restoreIME() }
             return
         }
 
-        // Terminator keycodes: space (49), tab (48), return (36), keypad enter (76)
-        if keycode == 49 || keycode == 48 || keycode == 36 || keycode == 76 {
-            if inSlashMode {
-                restoreIME()
-            }
+        switch keycode {
+        case 36, 76:
+            // Return / keypad enter: terminator, and a fresh line begins (in chat
+            // inputs Enter also submits and clears the field).
+            if inSlashMode { restoreIME() }
+            atLineStart = true
             return
+        case 48, 49:
+            // Tab / space: terminator, but the caret stays on the same line.
+            if inSlashMode { restoreIME() }
+            atLineStart = false
+            return
+        default:
+            break
         }
 
-        if typed == "/" {
+        if typed == "/" && atLineStart {
             enterSlashMode()
+        }
+
+        if !typed.isEmpty {
+            // Any printable key means we're no longer at the start of the line.
+            // Erring toward "content" (under-triggering `/`) is the safe direction.
+            atLineStart = false
+        }
+    }
+
+    /// Treat the next keystroke as the start of a fresh line. Driven by
+    /// focus / app-activation decisions (an event callback, never a poll) so
+    /// switching into an empty field and immediately typing `/` still arms.
+    func noteContextReset() {
+        atLineStart = true
+        if inSlashMode {
+            // The editing context changed out from under us; abandon transient
+            // English without restoring — the focus rule already chose the input
+            // source for the new context.
+            inSlashMode = false
+            savedSourceID = nil
         }
     }
 
