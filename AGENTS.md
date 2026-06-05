@@ -20,6 +20,46 @@ AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 15+ that s
 - `script/build_and_run.sh` — local build/run helper (`run`, `--debug`, `--logs`, `--telemetry`, `--verify`).
 - `generate_project.rb` — regenerates `AutoSwitch.xcodeproj` via `xcodeproj` gem.
 
+## Architecture
+
+Event-driven pipeline: signals from `Monitor/` reach `FocusCoordinator`, which
+asks `RuleEngine` for a `SwitchDecision` that `SwitchScheduler` applies through
+`InputSourceController` (Carbon TIS).
+
+- `FocusCoordinator` is the single funnel for all context signals and holds the
+  shell/TUI detection state.
+- `RuleEngine` is a pure function. Priority: TUI prompt → shell prompt → Spotlight
+  rule → app rule → global default (with ascii/system/first fallbacks). TUI input
+  boxes force Chinese; shell prompts force English.
+- `SwitchScheduler` debounces ~150 ms, then verifies/corrects once (~500 ms
+  total); it skips when already on target and coalesces duplicate pending targets,
+  so it never fights a manual switch.
+- `InputSourceController` updates its cached current source synchronously on our
+  own `selectInputSource`, so the TIS-changed notification path can tell a
+  user-initiated switch (Shift / Ctrl-Space / menu) apart and fire
+  `onUserInitiatedChange` (this drives transient English). `InputSourceClassifier`
+  is the only classifier.
+- Event sources: `AppActivationMonitor` (NSWorkspace), `SpotlightPanelMonitor`
+  (per-app AX observers + CGWindow visibility poll), `LockScreenMonitor` (wake),
+  and `FocusedElementMonitor` (terminal text via `AXTextReader` +
+  `ShellPromptDetector` regexes).
+- All keystroke-driven features subscribe to one `KeyboardEventHub` tap (wired in
+  `AppState`): `SlashTriggerMonitor` and `TransientEnglishMonitor`.
+
+`AppState` is the `@MainActor` singleton that constructs and wires every
+subsystem, owns the settings window, and forwards child `ObservableObject`
+changes to SwiftUI. The app is single-instance (flock + a
+`DistributedNotificationCenter` "open settings" signal).
+
+Slash trigger / IME (subtle — read before touching `SlashTriggerMonitor`):
+line-start cannot be tracked by counting keystrokes under a CJK IME (pinyin emits
+many keyDowns per committed character, and backspace deletes whole characters).
+`CaretContextProbe` reads the real caret/text via Accessibility instead — enabling
+`AXManualAccessibility` once per pid for Electron apps (Claude/Codex Desktop) that
+expose no focused element. Terminals report an unreliable AX caret, so prompt
+bundles fall back to a keystroke flag re-armed on Enter / app switch / backspace;
+that re-arm is driven only by real app activation, never by rule decisions.
+
 ## Build And Run
 
 ```bash
@@ -27,7 +67,16 @@ AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 15+ that s
 ./script/build_and_run.sh --verify  # build DEV, launch, confirm process is alive
 xcodebuild test -project AutoSwitch.xcodeproj -scheme AutoSwitch \
   -destination 'platform=macOS,arch=arm64' -derivedDataPath DerivedData
+
+# A single class or method (append /testMethodName to narrow further):
+xcodebuild test -project AutoSwitch.xcodeproj -scheme AutoSwitch \
+  -destination 'platform=macOS,arch=arm64' -derivedDataPath DerivedData \
+  -only-testing:AutoSwitchTests/SlashAndTransientMonitorTests
 ```
+
+The Xcode project is generated, not hand-maintained: adding/removing/renaming a
+source or test file means editing the `app_files` / `test_files` arrays in
+`generate_project.rb` and re-running it — never hand-edit `project.pbxproj`.
 
 To regenerate the Xcode project after touching `generate_project.rb`:
 
@@ -61,4 +110,4 @@ Required env vars: `AUTOSWITCH_SIGNING_IDENTITY`, `AUTOSWITCH_REPO`, `AUTOSWITCH
 log show --info --style compact --predicate 'subsystem == "dev.autoswitch"' --last 5m
 ```
 
-Categories: `app`, `app-state`, `input-source`, `coordinator`, `scheduler`, `spotlight-monitor`, `single-instance`.
+Categories: `app`, `app-state`, `config`, `coordinator`, `scheduler`, `input-source`, `keyboard-hub`, `slash-trigger`, `transient-english`, `focused-element`, `caret-probe`, `spotlight-monitor`, `single-instance`, `status-bar`.
