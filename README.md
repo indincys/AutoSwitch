@@ -1,119 +1,96 @@
 # AutoSwitch
 
-Native macOS input source switcher for Apple Silicon and macOS 15 or later.
+AutoSwitch 是一个 macOS 输入法自动切换工具。你可以为不同应用设置不同输入法，切到对应应用时，系统输入法会自动切过去。
 
-AutoSwitch runs as an accessory app: no Dock icon and no menu bar item. Opening the app shows the settings window; opening it again signals the existing instance and reopens that window.
+它适合经常在中文写作、英文命令、开发工具和聊天软件之间来回切换的人。比如：微信用中文，Terminal 用 ABC，Spotlight 或 Raycast 用英文。
 
-## Build And Run
+## 主要功能
 
-```bash
-./script/build_and_run.sh
-```
+- 按应用自动切换输入法：每个应用可以绑定一个固定输入法。
+- 设置默认输入法：没有匹配应用规则时，使用你指定的默认输入法。
+- 支持启动器窗口：Spotlight、Raycast、Alfred、hapiGO 这类浮动窗口也可以单独设置。
+- 终端提示符自动切英文：回到 shell 提示符时切到英文，离开后按应用规则恢复。
+- 输入 `/` 临时切英文：适合输入 slash 命令，按空格、Tab 或回车后恢复原输入法。
+- 用 Shift 临时切换：可以在 ABC 和中文输入法之间临时切换，并在一段时间无操作后恢复。
+- 菜单栏快速操作：从菜单栏给当前应用添加规则、打开设置、检查更新或退出。
 
-Other useful commands:
+AutoSwitch 只切换 macOS 系统输入法，不控制第三方输入法内部的中英文模式。
 
-```bash
-./script/build_and_run.sh --verify
-xcodebuild test -project AutoSwitch.xcodeproj -scheme AutoSwitch -destination 'platform=macOS,arch=arm64' -derivedDataPath DerivedData
-```
+## 系统要求
 
-Guided manual smoke test:
+- Apple Silicon Mac
+- macOS 15 或更新版本
 
-```bash
-Scripts/manual-smoke.sh
-```
+## 下载与安装
 
-This starts AutoSwitch, prompts you through the foreground app, Spotlight, wake,
-login item, and config-persistence checks, then writes a Markdown report under
-`Build/manual-smoke/`. The report includes collected logs plus pass/fail/skip
-answers for the manual observations.
+到 [Releases](https://github.com/indincys/AutoSwitch/releases) 下载最新版 `AutoSwitch.zip`。
 
-## First Setup
+下载后解压，把 `AutoSwitch.app` 移到“应用程序”文件夹，然后打开。因为这是直接分发的 macOS 工具，系统可能会提示无法验证开发者；这种情况下，右键点击 `AutoSwitch.app`，选择“打开”，再确认一次即可。
 
-1. Open AutoSwitch.
-2. If Gatekeeper blocks a downloaded build, right-click AutoSwitch.app and choose Open. For a quarantined self-use build, `xattr -dr com.apple.quarantine AutoSwitch.app` also clears the quarantine flag.
-3. Grant Accessibility permission when prompted, or use Settings > General > Open Settings.
-4. Disable macOS document-level input source switching in Keyboard settings if AutoSwitch reports that it is enabled.
-5. Pick a global default input source.
-6. Add app rules from the running app list or by bundle ID.
-7. Add Spotlight-like apps if you use Raycast, hapiGO, Alfred, or another floating launcher.
-8. Enable launch at login if desired.
+## 首次设置
 
-The app stores configuration at:
+第一次打开 AutoSwitch 时，建议按这个顺序设置：
+
+1. 打开“通用设置”，确认当前输入法显示正常。
+2. 授予“辅助功能”权限。没有这个权限，AutoSwitch 无法识别当前应用和部分浮动窗口。
+3. 选择默认输入法。没有应用规则时会用它。
+4. 到“应用规则”里添加常用应用，并为它们选择输入法。
+5. 如果你常用 Spotlight、Raycast、Alfred 或 hapiGO，可以为这些启动器单独添加规则。
+6. 如果希望开机后自动运行，打开“登录时启动”。
+
+如果 AutoSwitch 提示 macOS 已开启“按文稿切换输入法”，建议到系统键盘设置里关闭它。这个系统选项可能会覆盖 AutoSwitch 的切换结果。
+
+## 日常使用
+
+AutoSwitch 启动后会在后台运行，不占用 Dock。你可以通过菜单栏图标打开设置或快速处理当前应用规则。
+
+常见用法：
+
+- 微信、备忘录、写作软件：设置为中文输入法。
+- Terminal、iTerm、代码编辑器：设置为 ABC 或其他英文输入法。
+- Spotlight、Raycast、Alfred：设置为英文输入法，搜索更顺手。
+- Claude Code、Codex CLI 等命令行工具：开启 `/` 触发，输入 slash 命令时自动切英文。
+
+你手动切换输入法时，AutoSwitch 不会把这次操作写回规则。它只会在应用切换、启动器显示、终端提示符等场景下按规则处理。
+
+## 更新
+
+在“通用设置”的“菜单栏与更新”里点击“检查更新”，即可检查新版本。
+
+也可以直接到 [Releases](https://github.com/indincys/AutoSwitch/releases) 下载最新版本。
+
+## 隐私说明
+
+AutoSwitch 需要“辅助功能”权限来识别当前应用、观察部分启动器窗口，并支持终端提示符、`/` 触发和 Shift 临时切换。
+
+键盘监听只在本机进行，用来判断触发键和当前输入场景。AutoSwitch 不记录你的输入内容，不上传数据，也没有遥测。
+
+配置文件保存在本机：
 
 ```text
 ~/Library/Application Support/AutoSwitch/config.json
 ```
 
-If the config file is corrupt, AutoSwitch backs it up as `config.corrupt.<timestamp>.json` and starts from defaults.
+如果配置文件损坏，AutoSwitch 会先备份旧文件，再从默认配置启动。
 
-## Behavior
+## 常见问题
 
-- Normal apps use `NSWorkspace.didActivateApplicationNotification`.
-- Rules match by bundle ID.
-- Same-app window and focus changes are intentionally ignored.
-- Spotlight-like panels use Accessibility observers plus a CGWindow visibility fallback.
-- Switches are debounced: 150 ms before applying, then one verification/correction at 500 ms total.
-- Temporary manual input-source changes are not written back to config.
-- Wake/session-active events re-evaluate the current frontmost app.
+### 为什么切到某个应用后没有自动切换？
 
-AutoSwitch switches macOS system input sources through Carbon TIS APIs. It does not handle internal English/Chinese modes inside third-party IMEs.
+先确认这个应用已经在“应用规则”里，并且规则处于启用状态。还要确认 AutoSwitch 拥有“辅助功能”权限。
 
-## Privacy
+### 为什么中文输入法内部的英文模式没有变化？
 
-AutoSwitch needs Accessibility permission to read the active app, detect terminal
-prompts, and observe keystrokes for the `/`-to-English and transient-English
-features. All keyboard observation is local and listen-only: a single shared
-event tap uses keystrokes only to detect trigger keys (`/`, space/return, bare
-Shift) and terminal-prompt activity in the moment. Nothing typed is recorded,
-stored, or transmitted, and there is no telemetry.
+AutoSwitch 切换的是 macOS 系统输入法，比如 ABC、简体拼音、微信输入法。它不能控制第三方输入法内部自己的中英文状态。
 
-## Updates
+### 为什么 Spotlight 或 Raycast 没有按规则切换？
 
-Sparkle 2.x is integrated through Swift Package Manager. The Debug project uses placeholder values until release inputs are supplied:
+这类浮动窗口需要“辅助功能”权限。打开权限后，重新打开 AutoSwitch 或重新显示启动器窗口再试一次。
 
-- `SUFeedURL`
-- `SUPublicEDKey`
+### 如何退出 AutoSwitch？
 
-Use the Check for Updates button in Settings after a real appcast and public EdDSA key are configured.
+点击菜单栏里的 AutoSwitch 图标，选择“退出 AutoSwitch”。
 
-Sparkle private keys are user-owned release material. Generate or import them outside the repository and put only the public EdDSA key in `AutoSwitch/App/Info.plist`.
+### 如何隐藏菜单栏图标？
 
-## Logs
-
-```bash
-log show --info --style compact --predicate 'subsystem == "dev.autoswitch"' --last 5m
-```
-
-Common categories:
-
-- `app`
-- `app-state`
-- `input-source`
-- `coordinator`
-- `scheduler`
-- `spotlight-monitor`
-- `single-instance`
-
-## Release
-
-Dry run:
-
-```bash
-Scripts/release.sh --dry-run
-```
-
-Required environment variables for a real release:
-
-- `AUTOSWITCH_SIGNING_IDENTITY`
-- `AUTOSWITCH_ED_PRIVATE_KEY`
-- `AUTOSWITCH_REPO`
-- `AUTOSWITCH_RELEASE_TAG`
-- `AUTOSWITCH_RELEASE_NOTES_URL`
-- `AUTOSWITCH_FEED_URL`
-
-The release script archives the app, signs the exported `.app`, zips it, signs the zip with Sparkle EdDSA, writes `appcast.xml`, and uses `gh release create` when GitHub CLI is available.
-
-The signing identity is expected to be a local self-signed Code Signing certificate common name. Use the same signing identity for subsequent releases so Sparkle can replace the app cleanly.
-
-Do not commit Sparkle private keys, signing certificate material, or GitHub tokens.
+打开“通用设置”，在“菜单栏与更新”里关闭“显示菜单栏图标”。
