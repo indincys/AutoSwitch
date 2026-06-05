@@ -54,7 +54,11 @@ final class SwitchSchedulerTests: XCTestCase {
     }
 }
 
-final class KeyTapMonitorRecoveryTests: XCTestCase {
+/// Behavioral tests for the slash-trigger and transient-English monitors. These
+/// drive the monitors through their event entry points directly; the keyboard
+/// tap lifecycle (install / permission retry / re-enable) now lives in
+/// ``KeyboardEventHub`` and is covered by `KeyboardEventHubTests`.
+final class SlashAndTransientMonitorTests: XCTestCase {
     private final class StubController: InputSourceControlling {
         var availableInputSources: [InputSource] = []
         var currentInputSourceIDValue: String?
@@ -85,65 +89,23 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
         )
     }
 
-    @MainActor
-    func testSlashTriggerRetriesWhenPermissionBecomesAvailable() {
-        let controller = StubController()
-        var trusted = false
-        var installAttempts = 0
-        let monitor = SlashTriggerMonitor(
-            isEnabledProvider: { true },
-            permissionsCheck: { trusted },
-            inputSourceController: controller,
-            eventTapInstallerOverride: {
-                installAttempts += 1
-                return true
-            }
-        )
-
-        monitor.start()
-        XCTAssertEqual(installAttempts, 0)
-
-        trusted = true
-        monitor.ensureTapRunning()
-        XCTAssertEqual(installAttempts, 1)
-
-        monitor.ensureTapRunning()
-        XCTAssertEqual(installAttempts, 1)
-        monitor.stop()
-    }
-
-    @MainActor
-    func testSlashTriggerRetriesAfterTapInstallFailure() {
-        let controller = StubController()
-        var installAttempts = 0
-        let monitor = SlashTriggerMonitor(
-            isEnabledProvider: { true },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: {
-                installAttempts += 1
-                return installAttempts >= 2
-            }
-        )
-
-        monitor.start()
-        XCTAssertEqual(installAttempts, 1)
-
-        monitor.ensureTapRunning()
-        XCTAssertEqual(installAttempts, 2)
-
-        monitor.ensureTapRunning()
-        XCTAssertEqual(installAttempts, 2)
-        monitor.stop()
-    }
-
+    /// Forces the keystroke fallback path (probe returns nil) so the existing
+    /// keystroke-sequence tests exercise that branch deterministically.
     @MainActor
     private func makeSlashMonitor(_ controller: StubController) -> SlashTriggerMonitor {
         SlashTriggerMonitor(
             isEnabledProvider: { true },
-            permissionsCheck: { true },
             inputSourceController: controller,
-            eventTapInstallerOverride: { true }
+            lineStartProbe: { nil }
+        )
+    }
+
+    @MainActor
+    private func makeTransientMonitor(_ controller: StubController) -> TransientEnglishMonitor {
+        TransientEnglishMonitor(
+            isEnabledProvider: { true },
+            idleSecondsProvider: { 5 },
+            inputSourceController: controller
         )
     }
 
@@ -155,6 +117,13 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
             makeSource(id: "abc", kind: .ascii)
         ]
         controller.currentInputSourceIDValue = "wechat"
+        return controller
+    }
+
+    @MainActor
+    private func chineseAndAsciiController(current: String) -> StubController {
+        let controller = chineseAndAsciiController()
+        controller.currentInputSourceIDValue = current
         return controller
     }
 
@@ -211,46 +180,79 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
     }
 
     @MainActor
-    func testTransientEnglishRetriesAfterTapInstallFailure() {
-        let controller = StubController()
-        var installAttempts = 0
-        let monitor = TransientEnglishMonitor(
+    func testCaretProbeAtLineStartArmsEvenWhenFallbackSaysMidLine() {
+        // Regression for the IME case: after typing/deleting CJK the keystroke
+        // fallback is stuck "mid line", but the AX caret probe sees an empty line.
+        // The probe must win so `/` switches to English.
+        let controller = chineseAndAsciiController() // current = wechat (Chinese)
+        var probeAtLineStart: Bool? = nil
+        let monitor = SlashTriggerMonitor(
             isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
             inputSourceController: controller,
-            eventTapInstallerOverride: {
-                installAttempts += 1
-                return installAttempts >= 2
-            }
+            lineStartProbe: { probeAtLineStart }
         )
-
         monitor.start()
-        XCTAssertEqual(installAttempts, 1)
 
-        monitor.ensureTapRunning()
-        XCTAssertEqual(installAttempts, 2)
+        // Simulate prior CJK typing then deletion: fallback flag is now false.
+        monitor.handleKey(keycode: 0, typed: "a")
+        // ...but the focused field is actually empty (caret at line start).
+        probeAtLineStart = true
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertEqual(controller.selected, ["abc"])
+        monitor.stop()
+    }
 
-        monitor.ensureTapRunning()
-        XCTAssertEqual(installAttempts, 2)
+    @MainActor
+    func testCaretProbeMidLineDisarmsEvenWhenFallbackSaysLineStart() {
+        // Inverse: the probe sees content before the caret, so `/` must NOT switch
+        // even though the keystroke fallback would have armed.
+        let controller = chineseAndAsciiController()
+        var probeAtLineStart: Bool? = false
+        let monitor = SlashTriggerMonitor(
+            isEnabledProvider: { true },
+            inputSourceController: controller,
+            lineStartProbe: { probeAtLineStart }
+        )
+        monitor.start()
+
+        // Fallback flag is true at the very start, but the probe says mid-line.
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertTrue(controller.selected.isEmpty)
+
+        // When the probe goes unavailable (nil), fall back to the keystroke flag.
+        probeAtLineStart = nil
+        monitor.handleKey(keycode: 36, typed: "\r") // Enter → fallback re-arms
+        monitor.handleKey(keycode: 44, typed: "/")
+        XCTAssertEqual(controller.selected, ["abc"])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testBackspaceReArmsFallbackWhenProbeUnavailable() {
+        // Terminal / AX-blind case (probe nil): typing then deleting a line back to
+        // empty must let `/` switch again. Enter is not the only way to re-arm.
+        let controller = chineseAndAsciiController()
+        let monitor = SlashTriggerMonitor(
+            isEnabledProvider: { true },
+            inputSourceController: controller,
+            lineStartProbe: { nil } // simulate a terminal whose caret can't be read
+        )
+        monitor.start()
+
+        monitor.handleKey(keycode: 0, typed: "a")       // content → fallback false
+        monitor.handleKey(keycode: 44, typed: "/")      // mid line → no switch
+        XCTAssertTrue(controller.selected.isEmpty)
+
+        monitor.handleKey(keycode: 51, typed: "\u{7f}") // backspace → re-arm
+        monitor.handleKey(keycode: 44, typed: "/")      // line start again → switch
+        XCTAssertEqual(controller.selected, ["abc"])
         monitor.stop()
     }
 
     @MainActor
     func testBareShiftFromChineseSwitchesToAsciiThenRestoresOnIdle() {
-        let controller = StubController()
-        controller.availableInputSources = [
-            makeSource(id: "wechat", kind: .chinese),
-            makeSource(id: "abc", kind: .ascii)
-        ]
-        controller.currentInputSourceIDValue = "wechat"
-        let monitor = TransientEnglishMonitor(
-            isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: { true }
-        )
+        let controller = chineseAndAsciiController()
+        let monitor = makeTransientMonitor(controller)
 
         monitor.start()
         monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
@@ -267,19 +269,8 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
 
     @MainActor
     func testShiftModifiedKeyDoesNotSwitchSources() {
-        let controller = StubController()
-        controller.availableInputSources = [
-            makeSource(id: "wechat", kind: .chinese),
-            makeSource(id: "abc", kind: .ascii)
-        ]
-        controller.currentInputSourceIDValue = "wechat"
-        let monitor = TransientEnglishMonitor(
-            isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: { true }
-        )
+        let controller = chineseAndAsciiController()
+        let monitor = makeTransientMonitor(controller)
 
         monitor.start()
         monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
@@ -293,19 +284,8 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
 
     @MainActor
     func testSecondBareShiftRestoresPreviousChineseAndCancelsIdle() {
-        let controller = StubController()
-        controller.availableInputSources = [
-            makeSource(id: "wechat", kind: .chinese),
-            makeSource(id: "abc", kind: .ascii)
-        ]
-        controller.currentInputSourceIDValue = "wechat"
-        let monitor = TransientEnglishMonitor(
-            isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: { true }
-        )
+        let controller = chineseAndAsciiController()
+        let monitor = makeTransientMonitor(controller)
 
         monitor.start()
         monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
@@ -324,19 +304,8 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
 
     @MainActor
     func testFocusDecisionClearsShiftTransientSoSchedulerCanApplyTarget() {
-        let controller = StubController()
-        controller.availableInputSources = [
-            makeSource(id: "wechat", kind: .chinese),
-            makeSource(id: "abc", kind: .ascii)
-        ]
-        controller.currentInputSourceIDValue = "wechat"
-        let monitor = TransientEnglishMonitor(
-            isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: { true }
-        )
+        let controller = chineseAndAsciiController()
+        let monitor = makeTransientMonitor(controller)
 
         monitor.start()
         monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
@@ -352,19 +321,8 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
 
     @MainActor
     func testBareShiftFromAsciiOutsideTransientUsesRememberedChineseSource() {
-        let controller = StubController()
-        controller.availableInputSources = [
-            makeSource(id: "wechat", kind: .chinese),
-            makeSource(id: "abc", kind: .ascii)
-        ]
-        controller.currentInputSourceIDValue = "wechat"
-        let monitor = TransientEnglishMonitor(
-            isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: { true }
-        )
+        let controller = chineseAndAsciiController()
+        let monitor = makeTransientMonitor(controller)
 
         monitor.start()
         monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
@@ -381,19 +339,8 @@ final class KeyTapMonitorRecoveryTests: XCTestCase {
 
     @MainActor
     func testFocusDecisionRemembersChineseTargetForLaterShiftFromAscii() {
-        let controller = StubController()
-        controller.availableInputSources = [
-            makeSource(id: "wechat", kind: .chinese),
-            makeSource(id: "abc", kind: .ascii)
-        ]
-        controller.currentInputSourceIDValue = "abc"
-        let monitor = TransientEnglishMonitor(
-            isEnabledProvider: { true },
-            idleSecondsProvider: { 5 },
-            permissionsCheck: { true },
-            inputSourceController: controller,
-            eventTapInstallerOverride: { true }
-        )
+        let controller = chineseAndAsciiController(current: "abc")
+        let monitor = makeTransientMonitor(controller)
 
         monitor.start()
         monitor.handleFocusDecision(SwitchDecision(targetInputSourceID: "wechat", reason: "app rule", sourceBundleID: "app", isPanelContext: false))

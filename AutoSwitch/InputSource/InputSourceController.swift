@@ -153,7 +153,7 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
         let languages = stringArrayProperty(source, key: kTISPropertyInputSourceLanguages)
         let isEnabled = boolProperty(source, key: kTISPropertyInputSourceIsEnabled)
         let isSelectCapable = boolProperty(source, key: kTISPropertyInputSourceIsSelectCapable)
-        let kind = classify(sourceID: sourceID, category: category, languages: languages)
+        let kind = InputSourceClassifier.classify(sourceID: sourceID, category: category, languages: languages)
 
         return InputSource(
             id: sourceID,
@@ -195,23 +195,5 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
             return number.boolValue
         }
         return false
-    }
-
-    private func classify(sourceID: String, category: String, languages: [String]) -> InputSourceKind {
-        let normalized = sourceID.lowercased()
-        let languageBlob = languages.joined(separator: " ").lowercased()
-        if normalized.contains("abc") || normalized.contains("us") || normalized.contains("keyboardlayout") && languageBlob.contains("en") {
-            return .ascii
-        }
-        if languageBlob.contains("zh") || normalized.contains("pinyin") || normalized.contains("zhuyin") || normalized.contains("wubi") || normalized.contains("cangjie") || normalized.contains("shuangpin") {
-            return .chinese
-        }
-        if normalized.hasPrefix("com.apple") {
-            return .system
-        }
-        if category.lowercased().contains("inputmethod") {
-            return .other
-        }
-        return .other
     }
 }

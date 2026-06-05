@@ -84,6 +84,7 @@ final class AppState: ObservableObject {
     let permissionsManager = PermissionsManager()
     let loginItemManager = LoginItemManager()
     let updaterController = UpdaterController()
+    let keyboardEventHub = KeyboardEventHub()
 
     var isTestEnvironment: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
@@ -105,6 +106,10 @@ final class AppState: ObservableObject {
     lazy var appActivationMonitor = AppActivationMonitor { [weak self] bundleID in
         self?.focusedElementMonitor.handleAppActivation(bundleID: bundleID)
         self?.focusCoordinator.handleAppActivation(bundleID: bundleID)
+        // Re-arm the slash trigger's line-start fallback on a real app switch only.
+        // (Driving this from every rule decision re-armed it on each shell/TUI
+        // detection in terminals, so a mid-line `/` falsely triggered.)
+        self?.slashTriggerMonitor.noteContextReset()
     }
 
     lazy var lockScreenMonitor = LockScreenMonitor { [weak self] event in
@@ -193,7 +198,6 @@ final class AppState: ObservableObject {
 
         focusCoordinator.onDecisionResolved = { [weak self] decision in
             self?.transientEnglishMonitor.handleFocusDecision(decision)
-            self?.slashTriggerMonitor.noteContextReset()
         }
         appActivationMonitor.start()
         lockScreenMonitor.start()
@@ -201,6 +205,21 @@ final class AppState: ObservableObject {
         focusedElementMonitor.start()
         slashTriggerMonitor.start()
         transientEnglishMonitor.start()
+
+        // Single shared keyboard tap fans every keystroke out to the three
+        // keystroke-driven features, replacing the per-feature taps they used to
+        // each install. Wire handlers before starting the hub.
+        keyboardEventHub.addKeyDownHandler { [weak self] event in
+            guard let self else { return }
+            self.slashTriggerMonitor.handleKey(keycode: event.keycode, typed: event.characters)
+            self.transientEnglishMonitor.handleKeyDownEvent()
+            self.focusedElementMonitor.handleKeyActivity()
+        }
+        keyboardEventHub.addFlagsChangedHandler { [weak self] event in
+            self?.transientEnglishMonitor.handleFlagsChanged(keyCode: event.keycode, flags: event.flags)
+        }
+        keyboardEventHub.start()
+
         if configStore.config.showMenuBarIcon {
             statusBarController.start()
         }

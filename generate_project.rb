@@ -59,8 +59,11 @@ app_files = %w[
   InputSource/InputSourceClassifier.swift
   InputSource/InputSourceController.swift
   Monitor/AppActivationMonitor.swift
+  Monitor/AXTextReader.swift
+  Monitor/CaretContextProbe.swift
   Monitor/FocusedElementMonitor.swift
   Monitor/FocusEvent.swift
+  Monitor/KeyboardEventHub.swift
   Monitor/LockScreenMonitor.swift
   Monitor/SpotlightPanelMonitor.swift
   Monitor/VisibilityDiff.swift
@@ -88,6 +91,8 @@ test_files = %w[
   LaunchContextTests.swift
   FocusCoordinatorTests.swift
   VisibilityDiffTests.swift
+  KeyboardEventHubTests.swift
+  InputSourceClassifierTests.swift
 ]
 
 app_file_refs = app_files.map do |relative|
@@ -104,10 +109,10 @@ test_file_refs = test_files.map do |relative|
   ref
 end
 
-app_target = project.new_target(:application, 'AutoSwitch', :osx, '26.0')
+app_target = project.new_target(:application, 'AutoSwitch', :osx, '15.0')
 app_target.product_name = 'AutoSwitch'
 
-test_target = project.new_target(:unit_test_bundle, 'AutoSwitchTests', :osx, '26.0')
+test_target = project.new_target(:unit_test_bundle, 'AutoSwitchTests', :osx, '15.0')
 test_target.product_name = 'AutoSwitchTests'
 test_target.add_dependency(app_target)
 
@@ -129,7 +134,7 @@ common_app_settings = {
   'CURRENT_PROJECT_VERSION' => '8',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
-  'MACOSX_DEPLOYMENT_TARGET' => '26.0',
+  'MACOSX_DEPLOYMENT_TARGET' => '15.0',
   'CODE_SIGN_STYLE' => 'Automatic',
   'CODE_SIGN_IDENTITY' => '-',
   'DEVELOPMENT_TEAM' => '',
@@ -170,7 +175,7 @@ common_test_settings = {
   'CURRENT_PROJECT_VERSION' => '8',
   'SWIFT_VERSION' => '6.0',
   'ENABLE_STRICT_CONCURRENCY' => 'YES',
-  'MACOSX_DEPLOYMENT_TARGET' => '26.0',
+  'MACOSX_DEPLOYMENT_TARGET' => '15.0',
   'CODE_SIGN_STYLE' => 'Automatic',
   'CODE_SIGN_IDENTITY' => '-',
   'DEVELOPMENT_TEAM' => '',

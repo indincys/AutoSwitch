@@ -1,163 +1,61 @@
-import AppKit
-import ApplicationServices
-import CoreGraphics
 import Foundation
 import os.log
 
-/// Listens for `/` keydown to enter a transient "force English" state, then for
-/// the next space / tab / return / enter to restore whichever input source was
-/// active before. Useful for slash commands in Claude Code, Codex CLI, and
-/// similar tools where you usually want to type the command in English even
-/// when the surrounding context is Chinese.
+/// Reacts to `/` keydown to enter a transient "force English" state, then to the
+/// next space / tab / return / enter to restore whichever input source was active
+/// before. Useful for slash commands in Claude Code, Codex CLI, and similar tools
+/// where you usually want to type the command in English even when the
+/// surrounding context is Chinese.
 ///
-/// The `/` only arms when the caret is at the **start of a line**, so a `/`
-/// typed mid-sentence (e.g. inside Chinese prose) is left alone. "Line start"
-/// is tracked purely from the keystrokes this tap already receives — no polling,
-/// no AX caret queries: it resets on return / enter, on focus changes via
-/// `noteContextReset()`, and is cleared by the first printable key on the line.
+/// "Is the caret at the start of a line?" is judged by `lineStartProbe`, which
+/// reads the focused element's real caret/text via Accessibility
+/// (``CaretContextProbe``). This is IME-proof: counting keystrokes cannot track
+/// the caret column once a CJK IME is composing/committing, so deleting Chinese
+/// and retyping `/` used to leave the trigger stuck. When the probe can't read the
+/// element (e.g. a terminal that exposes no editable-text caret) it returns `nil`
+/// and we fall back to a simple keystroke flag.
+///
+/// Keystrokes are delivered by the shared ``KeyboardEventHub``;
+/// `handleKey(keycode:typed:)` is the entry point.
 @MainActor
 final class SlashTriggerMonitor {
     private let logger = Logger(subsystem: "dev.autoswitch", category: "slash-trigger")
     private let isEnabledProvider: () -> Bool
-    private let permissionsCheck: () -> Bool
     private let inputSourceController: InputSourceControlling
-    private let eventTapInstallerOverride: (() -> Bool)?
+    private let lineStartProbe: @MainActor () -> Bool?
 
-    private var eventTap: CFMachPort?
-    private var runLoopSource: CFRunLoopSource?
-    private var healthTimer: Timer?
-    private var installedByOverride = false
     private var didStart = false
-
     private var savedSourceID: String?
     private var inSlashMode = false
-    private var atLineStart = true
-    private var lastInstallFailureReason: String?
+    /// Best-effort line-start flag, used only when `lineStartProbe` returns nil.
+    private var fallbackAtLineStart = true
+
+    // Key codes (ANSI): Return / keypad Enter, Tab, Space, Delete (Backspace).
+    private static let returnKeyCodes: Set<Int64> = [36, 76]
+    private static let tabSpaceKeyCodes: Set<Int64> = [48, 49]
+    private static let backspaceKeyCode: Int64 = 51
 
     init(
         isEnabledProvider: @escaping () -> Bool,
-        permissionsCheck: @escaping () -> Bool = { AXIsProcessTrusted() },
         inputSourceController: InputSourceControlling,
-        eventTapInstallerOverride: (() -> Bool)? = nil
+        lineStartProbe: @escaping @MainActor () -> Bool? = { CaretContextProbe.atLineStart() }
     ) {
         self.isEnabledProvider = isEnabledProvider
-        self.permissionsCheck = permissionsCheck
         self.inputSourceController = inputSourceController
-        self.eventTapInstallerOverride = eventTapInstallerOverride
+        self.lineStartProbe = lineStartProbe
     }
 
     func start() {
         guard !didStart else { return }
         didStart = true
-        ensureTapRunning()
-        installHealthTimer()
-    }
-
-    func stop() {
-        clearTap(disable: true)
-        installedByOverride = false
-        healthTimer?.invalidate()
-        healthTimer = nil
-        didStart = false
-    }
-
-    private func clearTap(disable: Bool) {
-        if let source = runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
-        }
-        if disable, let tap = eventTap {
-            CGEvent.tapEnable(tap: tap, enable: false)
-        }
-        runLoopSource = nil
-        eventTap = nil
-    }
-
-    func ensureTapRunning() {
-        guard didStart else { return }
-        guard permissionsCheck() else {
-            logInstallFailureOnce("AX not granted; slash trigger will retry later")
-            return
-        }
-
-        if let tap = eventTap {
-            guard CFMachPortIsValid(tap) else {
-                logger.info("event tap invalid; reinstalling")
-                clearTap(disable: false)
-                installTap()
-                return
-            }
-            if !CGEvent.tapIsEnabled(tap: tap) {
-                logger.info("re-enabling event tap from health check")
-                CGEvent.tapEnable(tap: tap, enable: true)
-            }
-            return
-        }
-
-        if installedByOverride {
-            return
-        }
-
-        installTap()
-    }
-
-    private func installTap() {
-        if let eventTapInstallerOverride {
-            if eventTapInstallerOverride() {
-                installedByOverride = true
-                lastInstallFailureReason = nil
-                logger.info("slash trigger monitor started")
-            } else {
-                logInstallFailureOnce("CGEvent.tapCreate failed; slash trigger disabled")
-            }
-            return
-        }
-
-        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
-        let refcon = Unmanaged.passUnretained(self).toOpaque()
-        guard let tap = CGEvent.tapCreate(
-            tap: .cgSessionEventTap,
-            place: .headInsertEventTap,
-            options: .listenOnly,
-            eventsOfInterest: mask,
-            callback: slashTriggerEventCallback,
-            userInfo: refcon
-        ) else {
-            logInstallFailureOnce("CGEvent.tapCreate failed; slash trigger disabled")
-            return
-        }
-
-        eventTap = tap
-        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
-        runLoopSource = source
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-        CGEvent.tapEnable(tap: tap, enable: true)
-        lastInstallFailureReason = nil
         logger.info("slash trigger monitor started")
     }
 
-    private func installHealthTimer() {
-        healthTimer?.invalidate()
-        let timer = Timer(timeInterval: 5, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.ensureTapRunning()
-            }
-        }
-        healthTimer = timer
-        RunLoop.main.add(timer, forMode: .common)
-    }
-
-    private func logInstallFailureOnce(_ reason: String) {
-        guard lastInstallFailureReason != reason else { return }
-        lastInstallFailureReason = reason
-        logger.info("\(reason, privacy: .public)")
-    }
-
-    fileprivate func reenableTapIfNeeded() {
-        guard let tap = eventTap else { return }
-        if !CGEvent.tapIsEnabled(tap: tap) {
-            logger.info("re-enabling event tap after disable event")
-            CGEvent.tapEnable(tap: tap, enable: true)
-        }
+    func stop() {
+        inSlashMode = false
+        savedSourceID = nil
+        fallbackAtLineStart = true
+        didStart = false
     }
 
     func handleKey(keycode: Int64, typed: String) {
@@ -166,30 +64,44 @@ final class SlashTriggerMonitor {
             return
         }
 
-        switch keycode {
-        case 36, 76:
+        if Self.returnKeyCodes.contains(keycode) {
             // Return / keypad enter: terminator, and a fresh line begins (in chat
             // inputs Enter also submits and clears the field).
             if inSlashMode { restoreIME() }
-            atLineStart = true
+            fallbackAtLineStart = true
             return
-        case 48, 49:
-            // Tab / space: terminator, but the caret stays on the same line.
-            if inSlashMode { restoreIME() }
-            atLineStart = false
-            return
-        default:
-            break
         }
 
-        if typed == "/" && atLineStart {
-            enterSlashMode()
+        if Self.tabSpaceKeyCodes.contains(keycode) {
+            // Tab / space: terminator, but the caret stays on the same line.
+            if inSlashMode { restoreIME() }
+            fallbackAtLineStart = false
+            return
+        }
+
+        if keycode == Self.backspaceKeyCode {
+            // Deleting re-arms the line-start fallback so that clearing a line back
+            // to empty lets `/` arm again. This only matters where the AX probe
+            // can't read the caret (terminals, AX-blind apps); AX apps are governed
+            // by the probe regardless, so a partial mid-line delete there still
+            // reads as "content before caret" and does not arm.
+            fallbackAtLineStart = true
+            return
+        }
+
+        if typed == "/" {
+            // Prefer the real caret context (IME-proof); fall back to the
+            // keystroke flag only when AX can't tell us.
+            let atLineStart = lineStartProbe() ?? fallbackAtLineStart
+            if atLineStart {
+                enterSlashMode()
+            }
         }
 
         if !typed.isEmpty {
-            // Any printable key means we're no longer at the start of the line.
-            // Erring toward "content" (under-triggering `/`) is the safe direction.
-            atLineStart = false
+            // Any printable key means we're no longer at the start of the line
+            // (used only by the fallback path).
+            fallbackAtLineStart = false
         }
     }
 
@@ -197,7 +109,7 @@ final class SlashTriggerMonitor {
     /// focus / app-activation decisions (an event callback, never a poll) so
     /// switching into an empty field and immediately typing `/` still arms.
     func noteContextReset() {
-        atLineStart = true
+        fallbackAtLineStart = true
         if inSlashMode {
             // The editing context changed out from under us; abandon transient
             // English without restoring — the focus rule already chose the input
@@ -241,38 +153,4 @@ final class SlashTriggerMonitor {
             $0.kind == .ascii && $0.isEnabled && $0.isSelectCapable
         })?.id
     }
-}
-
-// CGEventTap callback must be a `@convention(c)` function, so it lives at file
-// scope and dispatches to the main actor for any state interaction.
-private let slashTriggerEventCallback: CGEventTapCallBack = { _, type, event, refcon in
-    guard let refcon else { return Unmanaged.passUnretained(event) }
-    let monitor = Unmanaged<SlashTriggerMonitor>.fromOpaque(refcon).takeUnretainedValue()
-
-    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-        DispatchQueue.main.async {
-            Task { @MainActor in
-                monitor.reenableTapIfNeeded()
-            }
-        }
-        return Unmanaged.passUnretained(event)
-    }
-
-    guard type == .keyDown else {
-        return Unmanaged.passUnretained(event)
-    }
-
-    let keycode = event.getIntegerValueField(.keyboardEventKeycode)
-    var length: Int = 0
-    var buffer = [UniChar](repeating: 0, count: 4)
-    event.keyboardGetUnicodeString(maxStringLength: buffer.count, actualStringLength: &length, unicodeString: &buffer)
-    let typed = String(utf16CodeUnits: buffer, count: length)
-
-    DispatchQueue.main.async {
-        Task { @MainActor in
-            monitor.handleKey(keycode: keycode, typed: typed)
-        }
-    }
-
-    return Unmanaged.passUnretained(event)
 }

@@ -1,6 +1,5 @@
 import AppKit
 import ApplicationServices
-import CoreGraphics
 import Foundation
 import os.log
 
@@ -27,6 +26,13 @@ enum PromptDetectionTargetBundles {
     }
 }
 
+/// Detects shell / TUI prompts in terminal apps so the rule engine can force
+/// English (shell prompt) or Chinese (AI-CLI TUI input box).
+///
+/// Keystrokes that should re-arm the detection burst are delivered by the shared
+/// ``KeyboardEventHub`` via `handleKeyActivity()` — this type no longer owns a
+/// keyboard tap. It still owns the per-app AX observer and the burst-poll timer,
+/// and delegates all AX tree reading to ``AXTextReader``.
 @MainActor
 final class FocusedElementMonitor {
     private let logger = Logger(subsystem: "dev.autoswitch", category: "focused-element")
@@ -36,11 +42,10 @@ final class FocusedElementMonitor {
     private let eventHandler: (FocusEvent) -> Void
     private let pollInterval: TimeInterval
     private let pollBurstDuration: TimeInterval
+    private let textReader = AXTextReader()
 
     private var pollTimer: Timer?
     private var pollDeadline: Date?
-    private var eventTap: CFMachPort?
-    private var runLoopSource: CFRunLoopSource?
     private var axObserver: AXObserver?
     private var axRunLoopSource: CFRunLoopSource?
     private var didStart = false
@@ -52,13 +57,15 @@ final class FocusedElementMonitor {
     private var lastDiagnosticBundleID: String?
     private var lastDiagnosticAt: Date?
     private var enhancedUITriedPIDs: Set<pid_t> = []
-    private var lastInstallFailureReason: String?
 
     /// Undocumented but well-known accessibility attribute names. Setting these
     /// to YES on an Electron/Chromium app element triggers it to populate its
     /// AX tree (without this, focused-element queries return -25212
     /// attributeUnsupported). macOS sets these automatically when VoiceOver is
-    /// active; we replicate that for our own AX-text reads.
+    /// active; we replicate that for our own AX-text reads. Note this puts the
+    /// target app into the same "enhanced accessibility" mode VoiceOver uses, so
+    /// it is applied at most once per pid and only when the app refused a normal
+    /// focused-element read.
     private static let enhancedUserInterfaceAttr = "AXEnhancedUserInterface"
     private static let manualAccessibilityAttr = "AXManualAccessibility"
 
@@ -86,7 +93,6 @@ final class FocusedElementMonitor {
     }
 
     func stop() {
-        stopKeyTap(disable: true)
         stopActiveMonitoring(clearDetections: true)
         didStart = false
     }
@@ -105,21 +111,15 @@ final class FocusedElementMonitor {
         refreshActiveApplication(reason: "app activation")
     }
 
-    fileprivate func handleKeyActivity() {
+    /// Called by the shared keyboard hub on every keyDown. No-ops unless a prompt
+    /// target is the active app, so non-terminal typing costs only this guard.
+    func handleKeyActivity() {
         guard activeBundleID != nil else { return }
         guard currentFrontmostApp().map({ isTargetBundle($0.bundleIdentifier) }) == true else {
             stopActiveMonitoring(clearDetections: true)
             return
         }
         triggerDetectionBurst(reason: "key activity")
-    }
-
-    fileprivate func reenableKeyTapIfNeeded() {
-        guard let eventTap else { return }
-        if !CGEvent.tapIsEnabled(tap: eventTap) {
-            logger.info("re-enabling focused element key tap")
-            CGEvent.tapEnable(tap: eventTap, enable: true)
-        }
     }
 
     private func refreshActiveApplication(reason: String) {
@@ -144,7 +144,6 @@ final class FocusedElementMonitor {
             return
         }
 
-        ensureKeyTapRunning()
         if activePID != app.processIdentifier || activeBundleID != bundleID {
             installAXObserver(for: app.processIdentifier, bundleID: bundleID)
             activePID = app.processIdentifier
@@ -224,7 +223,7 @@ final class FocusedElementMonitor {
             // window's subtree and look for shell prompts anywhere visible. This
             // covers Electron-style terminal apps that expose AXMainWindow even
             // when they refuse to report AXFocusedUIElement.
-            let fallbackText = collectWindowFallbackText(appElement: appElement, bundleID: bundleID)
+            let fallbackText = textReader.readWindowFallbackText(appElement: appElement)
             if !fallbackText.isEmpty {
                 let shell = ShellPromptDetector.detect(in: fallbackText, scanAllLines: true)
                 let tui = ShellPromptDetector.detectTUIPrompt(in: fallbackText, scanAllLines: true)
@@ -246,12 +245,12 @@ final class FocusedElementMonitor {
         }
 
         let focused = focusedRaw as! AXUIElement
-        let text = readSearchableText(from: focused)
+        let text = textReader.readSearchableText(from: focused)
         let kind: String
         if text.isEmpty {
-            kind = "empty (role=\(describeRole(focused)))"
+            kind = "empty (role=\(textReader.describeRole(focused)))"
         } else {
-            kind = "ok role=\(describeRole(focused))"
+            kind = "ok role=\(textReader.describeRole(focused))"
         }
         logDiagnosticIfNeeded(bundleID: bundleID, kind: "\(reason) \(kind)", text: text)
         let shell = ShellPromptDetector.detect(in: text)
@@ -273,53 +272,11 @@ final class FocusedElementMonitor {
         pollTimer = nil
         pollDeadline = nil
         removeAXObserver()
-        stopKeyTap(disable: true)
         activeBundleID = nil
         activePID = nil
         if clearDetections {
             clearAllReportedDetections()
         }
-    }
-
-    private func ensureKeyTapRunning() {
-        guard eventTap == nil else {
-            if let eventTap, !CGEvent.tapIsEnabled(tap: eventTap) {
-                CGEvent.tapEnable(tap: eventTap, enable: true)
-            }
-            return
-        }
-
-        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
-        let refcon = Unmanaged.passUnretained(self).toOpaque()
-        guard let tap = CGEvent.tapCreate(
-            tap: .cgSessionEventTap,
-            place: .headInsertEventTap,
-            options: .listenOnly,
-            eventsOfInterest: mask,
-            callback: focusedElementKeyTapCallback,
-            userInfo: refcon
-        ) else {
-            logInstallFailureOnce("CGEvent.tapCreate failed for focused element key tap")
-            return
-        }
-
-        eventTap = tap
-        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
-        runLoopSource = source
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-        CGEvent.tapEnable(tap: tap, enable: true)
-        lastInstallFailureReason = nil
-    }
-
-    private func stopKeyTap(disable: Bool) {
-        if let source = runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
-        }
-        if disable, let eventTap {
-            CGEvent.tapEnable(tap: eventTap, enable: false)
-        }
-        runLoopSource = nil
-        eventTap = nil
     }
 
     private func installAXObserver(for pid: pid_t, bundleID: String) {
@@ -374,12 +331,6 @@ final class FocusedElementMonitor {
         axObserver = nil
     }
 
-    private func logInstallFailureOnce(_ reason: String) {
-        guard lastInstallFailureReason != reason else { return }
-        lastInstallFailureReason = reason
-        logger.info("\(reason, privacy: .public)")
-    }
-
     private func logDiagnosticIfNeeded(bundleID: String?, kind: String, text: String) {
         let now = Date()
         let bundleChanged = bundleID != lastDiagnosticBundleID
@@ -393,23 +344,6 @@ final class FocusedElementMonitor {
         logger.info(
             "ax focus diag bundle=\(bundleID ?? "nil", privacy: .public) kind=\(kind, privacy: .public) len=\(text.count, privacy: .public) tail=\"\(snippet, privacy: .public)\""
         )
-    }
-
-    /// When the app element refuses to report its focused element (common in
-    /// Electron apps that opt out of AX focus tracking), try walking the main
-    /// window's subtree to collect visible text.
-    private func collectWindowFallbackText(appElement: AXUIElement, bundleID: String?) -> String {
-        var pieces: [String] = []
-        // Try focused window first, fall back to main window.
-        for attr in [kAXFocusedWindowAttribute, kAXMainWindowAttribute] {
-            var raw: CFTypeRef?
-            let status = AXUIElementCopyAttributeValue(appElement, attr as CFString, &raw)
-            guard status == .success, let raw else { continue }
-            let window = raw as! AXUIElement
-            collectText(from: window, depth: 0, maxDepth: 6, pieces: &pieces, totalBudget: 16384)
-            if joinedLength(pieces) >= 16 { break }
-        }
-        return pieces.joined(separator: "\n")
     }
 
     private func tryEnableEnhancedAXForElectron(pid: pid_t, bundleID: String?) {
@@ -429,16 +363,6 @@ final class FocusedElementMonitor {
         logger.info(
             "enabled enhanced AX for pid=\(pid, privacy: .public) bundle=\(bundleID ?? "nil", privacy: .public) enhancedUI=\(enhancedStatus.rawValue) manualAX=\(manualStatus.rawValue)"
         )
-    }
-
-    private func describeRole(_ element: AXUIElement) -> String {
-        let role = stringAttribute(element, kAXRoleAttribute) ?? "?"
-        let subrole = stringAttribute(element, kAXSubroleAttribute)
-        let identifier = stringAttribute(element, kAXIdentifierAttribute)
-        var parts = [role]
-        if let subrole, !subrole.isEmpty { parts.append("sub=\(subrole)") }
-        if let identifier, !identifier.isEmpty { parts.append("id=\(identifier)") }
-        return parts.joined(separator: "/")
     }
 
     private func clearAllReportedDetections(bundleID: String? = nil) {
@@ -471,106 +395,4 @@ final class FocusedElementMonitor {
             eventHandler(.tuiPromptStateChanged(bundleID: bundleID, detected: tui))
         }
     }
-
-    /// Collect text from the focused element and a shallow set of descendants
-    /// (some apps split prompt text into children rather than putting it on the
-    /// focused element's AXValue). When focus is on a leaf like a canvas with
-    /// no AXValue (Electron-style terminals), walk up to the parent so that
-    /// sibling DOM/widget nodes that *do* expose text can contribute.
-    private func readSearchableText(from element: AXUIElement) -> String {
-        var pieces: [String] = []
-        collectText(from: element, depth: 0, maxDepth: 3, pieces: &pieces, totalBudget: 4096)
-        if joinedLength(pieces) < 16, let parentEl = parentElement(of: element) {
-            collectText(from: parentEl, depth: 0, maxDepth: 3, pieces: &pieces, totalBudget: 8192)
-            if joinedLength(pieces) < 16, let grandparentEl = parentElement(of: parentEl) {
-                collectText(from: grandparentEl, depth: 0, maxDepth: 3, pieces: &pieces, totalBudget: 8192)
-            }
-        }
-        return pieces.joined(separator: "\n")
-    }
-
-    private func joinedLength(_ pieces: [String]) -> Int {
-        pieces.reduce(0) { $0 + $1.count }
-    }
-
-    private func parentElement(of element: AXUIElement) -> AXUIElement? {
-        var raw: CFTypeRef?
-        let status = AXUIElementCopyAttributeValue(element, kAXParentAttribute as CFString, &raw)
-        guard status == .success, let raw else { return nil }
-        return (raw as! AXUIElement)
-    }
-
-    private func collectText(
-        from element: AXUIElement,
-        depth: Int,
-        maxDepth: Int,
-        pieces: inout [String],
-        totalBudget: Int
-    ) {
-        let currentLength = pieces.reduce(0) { $0 + $1.count }
-        guard currentLength < totalBudget else { return }
-
-        if let value = stringAttribute(element, kAXValueAttribute) {
-            pieces.append(value)
-        }
-        if let placeholder = stringAttribute(element, kAXPlaceholderValueAttribute) {
-            pieces.append(placeholder)
-        }
-
-        guard depth < maxDepth else { return }
-
-        if let children = arrayAttribute(element, kAXChildrenAttribute) {
-            for child in children.prefix(16) {
-                collectText(
-                    from: child,
-                    depth: depth + 1,
-                    maxDepth: maxDepth,
-                    pieces: &pieces,
-                    totalBudget: totalBudget
-                )
-            }
-        }
-    }
-
-    private func stringAttribute(_ element: AXUIElement, _ name: String) -> String? {
-        var raw: CFTypeRef?
-        let status = AXUIElementCopyAttributeValue(element, name as CFString, &raw)
-        guard status == .success, let raw else { return nil }
-        if let str = raw as? String, !str.isEmpty {
-            return str
-        }
-        return nil
-    }
-
-    private func arrayAttribute(_ element: AXUIElement, _ name: String) -> [AXUIElement]? {
-        var raw: CFTypeRef?
-        let status = AXUIElementCopyAttributeValue(element, name as CFString, &raw)
-        guard status == .success, let raw else { return nil }
-        return raw as? [AXUIElement]
-    }
-}
-
-private let focusedElementKeyTapCallback: CGEventTapCallBack = { _, type, event, refcon in
-    guard let refcon else { return Unmanaged.passUnretained(event) }
-    let monitor = Unmanaged<FocusedElementMonitor>.fromOpaque(refcon).takeUnretainedValue()
-
-    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-        DispatchQueue.main.async {
-            Task { @MainActor in
-                monitor.reenableKeyTapIfNeeded()
-            }
-        }
-        return Unmanaged.passUnretained(event)
-    }
-
-    guard type == .keyDown else {
-        return Unmanaged.passUnretained(event)
-    }
-
-    DispatchQueue.main.async {
-        Task { @MainActor in
-            monitor.handleKeyActivity()
-        }
-    }
-    return Unmanaged.passUnretained(event)
 }

@@ -2,7 +2,7 @@
 
 ## Repository Context
 
-AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 26 that switches the macOS system input source based on the active app. It runs as an accessory app (no Dock icon, no menu bar item); opening the app shows the settings window, and opening it again signals the existing instance to bring that window back.
+AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 15+ that switches the macOS system input source based on the active app. It runs as an accessory app (no Dock icon, no menu bar item); opening the app shows the settings window, and opening it again signals the existing instance to bring that window back.
 
 ## Layout
 
@@ -10,7 +10,7 @@ AutoSwitch is a self-use native macOS app for Apple Silicon and macOS 26 that sw
 - `AutoSwitch/Config/` — config schema, persistence, builtin Spotlight bundle IDs.
 - `AutoSwitch/Engine/` — `RuleEngine`, `FocusCoordinator`, `SwitchScheduler` (debounce + verify).
 - `AutoSwitch/InputSource/` — Carbon TIS wrapper and classifier.
-- `AutoSwitch/Monitor/` — `NSWorkspace`, lock screen, and Spotlight-panel AX observers.
+- `AutoSwitch/Monitor/` — `NSWorkspace`, lock screen, and Spotlight-panel AX observers; `KeyboardEventHub` (the single shared keystroke tap) and `AXTextReader` (AX-tree text extraction).
 - `AutoSwitch/System/` — login item, permissions, document-switch checker, system settings deep links.
 - `AutoSwitch/UI/` — SwiftUI settings scene and components.
 - `AutoSwitch/Update/` — Sparkle controller.
@@ -47,7 +47,8 @@ Required env vars: `AUTOSWITCH_SIGNING_IDENTITY`, `AUTOSWITCH_REPO`, `AUTOSWITCH
 ## Durable Constraints
 
 - Swift 6, SwiftUI/AppKit, Carbon TIS, AX observers, `SMAppService`, Sparkle 2.x via SwiftPM.
-- Target: Apple Silicon, macOS 26.
+- All keystroke-driven features (slash trigger, transient English, shell-prompt burst) share the single `KeyboardEventHub` listen-only `CGEventTap`. Do not add new per-feature taps — register a handler on the hub instead. Input-source classification has a single source of truth in `InputSourceClassifier`; do not re-implement it.
+- Target: Apple Silicon, macOS 15+ (deployment floor `15.0`; the same single build runs unchanged through macOS 26+). The floor is set by `SMAppService` (macOS 13); 15 is the chosen, tested baseline. Keep this in sync with `LSMinimumSystemVersion` (Info.plist) and `MACOSX_DEPLOYMENT_TARGET` (generate_project.rb). Do not introduce `#available`/`@available` branches without expanding scope.
 - Do not add Intel support, App Store distribution, Developer ID notarization, menu bar residency, cloud sync, telemetry, or third-party IME internal mode handling unless scope is explicitly expanded.
 - Do not store Sparkle private keys, signing certificates, or GitHub tokens in the repository.
 - Settings window must not be always-on-top. It is a normal window the user can move behind other apps.

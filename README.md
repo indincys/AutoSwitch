@@ -1,6 +1,6 @@
 # AutoSwitch
 
-Native macOS input source switcher for Apple Silicon and macOS 26.
+Native macOS input source switcher for Apple Silicon and macOS 15 or later.
 
 AutoSwitch runs as an accessory app: no Dock icon and no menu bar item. Opening the app shows the settings window; opening it again signals the existing instance and reopens that window.
 
@@ -58,6 +58,15 @@ If the config file is corrupt, AutoSwitch backs it up as `config.corrupt.<timest
 - Wake/session-active events re-evaluate the current frontmost app.
 
 AutoSwitch switches macOS system input sources through Carbon TIS APIs. It does not handle internal English/Chinese modes inside third-party IMEs.
+
+## Privacy
+
+AutoSwitch needs Accessibility permission to read the active app, detect terminal
+prompts, and observe keystrokes for the `/`-to-English and transient-English
+features. All keyboard observation is local and listen-only: a single shared
+event tap uses keystrokes only to detect trigger keys (`/`, space/return, bare
+Shift) and terminal-prompt activity in the moment. Nothing typed is recorded,
+stored, or transmitted, and there is no telemetry.
 
 ## Updates
 

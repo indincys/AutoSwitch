@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E267B55962BC4A2C7EC35CFE"
+               BlueprintIdentifier = "8CD7802E91959D81D110B64A"
                BuildableName = "AutoSwitch.app"
                BlueprintName = "AutoSwitch"
                ReferencedContainer = "container:AutoSwitch.xcodeproj">
@@ -28,7 +28,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "39813E7AE68AE1E698024B3D"
+               BlueprintIdentifier = "FBFB8F8E09059FB20AF32091"
                BuildableName = "AutoSwitchTests.xctest"
                BlueprintName = "AutoSwitchTests"
                ReferencedContainer = "container:AutoSwitch.xcodeproj">
@@ -44,7 +44,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E267B55962BC4A2C7EC35CFE"
+            BlueprintIdentifier = "8CD7802E91959D81D110B64A"
             BuildableName = "AutoSwitch.app"
             BlueprintName = "AutoSwitch"
             ReferencedContainer = "container:AutoSwitch.xcodeproj">
@@ -55,7 +55,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "39813E7AE68AE1E698024B3D"
+               BlueprintIdentifier = "FBFB8F8E09059FB20AF32091"
                BuildableName = "AutoSwitchTests.xctest"
                BlueprintName = "AutoSwitchTests"
                ReferencedContainer = "container:AutoSwitch.xcodeproj">
@@ -77,7 +77,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E267B55962BC4A2C7EC35CFE"
+            BlueprintIdentifier = "8CD7802E91959D81D110B64A"
             BuildableName = "AutoSwitch.app"
             BlueprintName = "AutoSwitch"
             ReferencedContainer = "container:AutoSwitch.xcodeproj">
@@ -94,7 +94,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E267B55962BC4A2C7EC35CFE"
+            BlueprintIdentifier = "8CD7802E91959D81D110B64A"
             BuildableName = "AutoSwitch.app"
             BlueprintName = "AutoSwitch"
             ReferencedContainer = "container:AutoSwitch.xcodeproj">
