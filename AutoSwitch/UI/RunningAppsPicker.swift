@@ -7,12 +7,34 @@ struct RuleToolbar<AddContent: View>: View {
     let searchPrompt: String
     let addLabel: String
     let addAction: () -> Void
+    var compact: Bool = false
     var selectAllLabel: String?
     var selectAllAction: (() -> Void)?
     @Binding var isAddPresented: Bool
     @ViewBuilder var addContent: () -> AddContent
 
     var body: some View {
+        Group {
+            if compact {
+                VStack(alignment: .leading, spacing: 9) {
+                    actionButtons
+                    searchField
+                        .frame(maxWidth: .infinity)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    actionButtons
+                    Spacer()
+                    searchField
+                        .frame(maxWidth: 240)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
+    private var actionButtons: some View {
         HStack(spacing: 8) {
             Button(action: addAction) {
                 Label(addLabel, systemImage: "plus")
@@ -28,31 +50,28 @@ struct RuleToolbar<AddContent: View>: View {
                 }
                 .controlSize(.regular)
             }
-
-            Spacer()
-
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField(searchPrompt, text: $searchText)
-                    .textFieldStyle(.plain)
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
-            .frame(maxWidth: 240)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField(searchPrompt, text: $searchText)
+                .textFieldStyle(.plain)
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
     }
 }
 

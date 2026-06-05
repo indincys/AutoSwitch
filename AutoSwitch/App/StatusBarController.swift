@@ -41,11 +41,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func installStatusItem() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = item.button {
-            let image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "AutoSwitch")
-            image?.isTemplate = true
-            button.image = image
+            button.image = AutoSwitchMenuBarIcon.makeImage()
+            button.imagePosition = .imageOnly
             button.toolTip = "AutoSwitch"
         }
         let menu = NSMenu()
@@ -231,4 +230,40 @@ private struct SetRuleAction {
     let displayName: String
     let inputSourceID: String
     let lastSeenPath: String?
+}
+
+private enum AutoSwitchMenuBarIcon {
+    static func makeImage() -> NSImage {
+        let size = NSSize(width: 18, height: 18)
+        let image = NSImage(size: size, flipped: false) { _ in
+            drawBubble(in: NSRect(x: 2.4, y: 3.1, width: 9.2, height: 9.2), alpha: 0.68)
+            drawBubble(in: NSRect(x: 7.0, y: 7.0, width: 8.7, height: 8.7), alpha: 0.58)
+            drawBubble(in: NSRect(x: 9.7, y: 3.4, width: 5.9, height: 5.9), alpha: 0.88)
+
+            let switchMark = NSBezierPath()
+            switchMark.lineWidth = 1.15
+            switchMark.move(to: NSPoint(x: 4.6, y: 6.0))
+            switchMark.line(to: NSPoint(x: 8.0, y: 6.0))
+            switchMark.line(to: NSPoint(x: 6.8, y: 7.2))
+            switchMark.move(to: NSPoint(x: 13.6, y: 11.5))
+            switchMark.line(to: NSPoint(x: 10.2, y: 11.5))
+            switchMark.line(to: NSPoint(x: 11.4, y: 10.3))
+            NSColor.black.withAlphaComponent(0.92).setStroke()
+            switchMark.stroke()
+
+            return true
+        }
+        image.isTemplate = true
+        image.accessibilityDescription = "AutoSwitch"
+        return image
+    }
+
+    private static func drawBubble(in rect: NSRect, alpha: CGFloat) {
+        let path = NSBezierPath(ovalIn: rect)
+        NSColor.black.withAlphaComponent(alpha).setFill()
+        path.fill()
+        NSColor.black.withAlphaComponent(min(alpha + 0.24, 1)).setStroke()
+        path.lineWidth = 0.9
+        path.stroke()
+    }
 }

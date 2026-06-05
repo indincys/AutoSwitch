@@ -14,9 +14,9 @@ struct SettingsScene: View {
         .frame(minWidth: AppState.settingsWindowMinimumContentSize.width,
                minHeight: AppState.settingsWindowMinimumContentSize.height)
         .onAppear {
-            AppState.shared.permissionsManager.refresh()
-            AppState.shared.loginItemManager.refresh()
-            AppState.shared.inputSourceController.refreshInputSources()
+            appState.permissionsManager.refresh()
+            appState.loginItemManager.refresh()
+            appState.inputSourceController.refreshInputSources()
         }
     }
 }
