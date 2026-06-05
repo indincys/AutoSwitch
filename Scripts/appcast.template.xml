@@ -9,7 +9,7 @@
       <title>AutoSwitch {{VERSION}}</title>
       <pubDate>{{PUB_DATE}}</pubDate>
       <enclosure url="{{ARCHIVE_URL}}" sparkle:version="{{VERSION}}" sparkle:shortVersionString="{{SHORT_VERSION}}" length="{{ARCHIVE_SIZE}}" type="application/zip" sparkle:edSignature="{{ED_SIGNATURE}}" />
-      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <link>{{RELEASE_NOTES_URL}}</link>
     </item>
   </channel>
