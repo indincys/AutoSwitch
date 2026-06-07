@@ -374,6 +374,40 @@ final class SlashAndTransientMonitorTests: XCTestCase {
     }
 
     @MainActor
+    func testBareShiftFromChineseReactivatesSavedChineseOnIdleViaAlternateChineseSource() async {
+        let controller = StubController()
+        controller.availableInputSources = [
+            makeSource(id: "zh.target", kind: .chinese),
+            makeSource(id: "zh.bridge", kind: .chinese),
+            makeSource(id: "abc", kind: .ascii)
+        ]
+        controller.currentInputSourceIDValue = "zh.target"
+        let monitor = TransientEnglishMonitor(
+            isEnabledProvider: { true },
+            idleSecondsProvider: { 5 },
+            inputSourceController: controller,
+            reactivationDelayNanoseconds: 0
+        )
+        monitor.start()
+
+        monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
+        monitor.handleFlagsChanged(keyCode: 56, flags: [])
+        XCTAssertEqual(controller.selected, ["abc"])
+        XCTAssertEqual(controller.currentInputSourceIDValue, "abc")
+
+        monitor.fireIdleTimeoutForTesting()
+        try? await Task.sleep(nanoseconds: 20_000_000)
+
+        XCTAssertEqual(controller.selected, [
+            "abc",
+            "zh.bridge",
+            "zh.target"
+        ])
+        XCTAssertEqual(controller.currentInputSourceIDValue, "zh.target")
+        monitor.stop()
+    }
+
+    @MainActor
     func testShiftModifiedKeyDoesNotSwitchSources() {
         let controller = chineseAndAsciiController()
         let monitor = makeTransientMonitor(controller)
@@ -409,6 +443,40 @@ final class SlashAndTransientMonitorTests: XCTestCase {
     }
 
     @MainActor
+    func testSecondBareShiftReactivatesPreviousChineseViaAlternateChineseSource() async {
+        let controller = StubController()
+        controller.availableInputSources = [
+            makeSource(id: "zh.target", kind: .chinese),
+            makeSource(id: "zh.bridge", kind: .chinese),
+            makeSource(id: "abc", kind: .ascii)
+        ]
+        controller.currentInputSourceIDValue = "zh.target"
+        let monitor = TransientEnglishMonitor(
+            isEnabledProvider: { true },
+            idleSecondsProvider: { 5 },
+            inputSourceController: controller,
+            reactivationDelayNanoseconds: 0
+        )
+        monitor.start()
+
+        monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
+        monitor.handleFlagsChanged(keyCode: 56, flags: [])
+        XCTAssertEqual(controller.selected, ["abc"])
+
+        monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
+        monitor.handleFlagsChanged(keyCode: 56, flags: [])
+        try? await Task.sleep(nanoseconds: 20_000_000)
+
+        XCTAssertEqual(controller.selected, [
+            "abc",
+            "zh.bridge",
+            "zh.target"
+        ])
+        XCTAssertEqual(controller.currentInputSourceIDValue, "zh.target")
+        monitor.stop()
+    }
+
+    @MainActor
     func testFocusDecisionClearsShiftTransientSoSchedulerCanApplyTarget() {
         let controller = chineseAndAsciiController()
         let monitor = makeTransientMonitor(controller)
@@ -440,6 +508,41 @@ final class SlashAndTransientMonitorTests: XCTestCase {
         monitor.handleFlagsChanged(keyCode: 56, flags: [])
 
         XCTAssertEqual(controller.selected, ["abc", "wechat"])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testBareShiftFromAsciiOutsideTransientReactivatesRememberedChineseSource() async {
+        let controller = StubController()
+        controller.availableInputSources = [
+            makeSource(id: "zh.target", kind: .chinese),
+            makeSource(id: "zh.bridge", kind: .chinese),
+            makeSource(id: "abc", kind: .ascii)
+        ]
+        controller.currentInputSourceIDValue = "zh.target"
+        let monitor = TransientEnglishMonitor(
+            isEnabledProvider: { true },
+            idleSecondsProvider: { 5 },
+            inputSourceController: controller,
+            reactivationDelayNanoseconds: 0
+        )
+        monitor.start()
+
+        monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
+        monitor.handleFlagsChanged(keyCode: 56, flags: [])
+        XCTAssertEqual(controller.selected, ["abc"])
+
+        monitor.handleFocusDecision(SwitchDecision(targetInputSourceID: "abc", reason: "app rule", sourceBundleID: "app", isPanelContext: false))
+        monitor.handleFlagsChanged(keyCode: 56, flags: .maskShift)
+        monitor.handleFlagsChanged(keyCode: 56, flags: [])
+        try? await Task.sleep(nanoseconds: 20_000_000)
+
+        XCTAssertEqual(controller.selected, [
+            "abc",
+            "zh.bridge",
+            "zh.target"
+        ])
+        XCTAssertEqual(controller.currentInputSourceIDValue, "zh.target")
         monitor.stop()
     }
 

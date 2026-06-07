@@ -25,12 +25,14 @@ final class TransientEnglishMonitor {
     private let isEnabledProvider: () -> Bool
     private let idleSecondsProvider: () -> Int
     private let inputSourceController: InputSourceControlling
+    private let reactivationDelayNanoseconds: UInt64
 
     private var didStart = false
     private var transientMode: TransientMode?
     private var previousSourceID: String?
     private var lastNonASCIIInputSourceID: String?
     private var idleTimer: Timer?
+    private var reactivationTask: Task<Void, Never>?
     private var shiftTapCandidateKeyCode: Int64?
     private var shiftTapCandidateSawKeyDown = false
 
@@ -43,11 +45,13 @@ final class TransientEnglishMonitor {
     init(
         isEnabledProvider: @escaping () -> Bool,
         idleSecondsProvider: @escaping () -> Int,
-        inputSourceController: InputSourceControlling
+        inputSourceController: InputSourceControlling,
+        reactivationDelayNanoseconds: UInt64 = InputSourceActivationStrategy.defaultReactivationDelayNanoseconds
     ) {
         self.isEnabledProvider = isEnabledProvider
         self.idleSecondsProvider = idleSecondsProvider
         self.inputSourceController = inputSourceController
+        self.reactivationDelayNanoseconds = reactivationDelayNanoseconds
     }
 
     func start() {
@@ -64,6 +68,8 @@ final class TransientEnglishMonitor {
     }
 
     func stop() {
+        reactivationTask?.cancel()
+        reactivationTask = nil
         idleTimer?.invalidate()
         idleTimer = nil
         didStart = false
@@ -181,9 +187,8 @@ final class TransientEnglishMonitor {
                 return
             }
             if let targetID = preferredNonASCIIInputSourceID(),
-               inputSourceController.selectInputSource(id: targetID) {
-                lastNonASCIIInputSourceID = targetID
-                logger.info("transient english: bare Shift selected non-ascii source \(targetID, privacy: .public)")
+               activateNonASCIIInputSource(targetID, reason: "bare Shift") {
+                logger.info("transient english: bare Shift restoring non-ascii source \(targetID, privacy: .public)")
             }
             return
         }
@@ -250,10 +255,46 @@ final class TransientEnglishMonitor {
     private func restoreSavedSource(id: String, mode: TransientMode) {
         switch mode {
         case .sourceSwitch:
-            if inputSourceController.selectInputSource(id: id) {
-                lastNonASCIIInputSourceID = id
-            }
+            _ = activateNonASCIIInputSource(id, reason: "restore")
         }
+    }
+
+    private func activateNonASCIIInputSource(_ targetID: String, reason: String) -> Bool {
+        guard let target = inputSourceController.inputSource(with: targetID),
+              target.kind != .ascii,
+              target.isEnabled,
+              target.isSelectCapable else {
+            return false
+        }
+
+        if InputSourceActivationStrategy.canReactivateInputMode(
+            targetID: targetID,
+            inputSourceController: inputSourceController
+        ) {
+            reactivationTask?.cancel()
+            reactivationTask = Task { @MainActor [weak self] in
+                guard let self else { return }
+                let didActivate = await InputSourceActivationStrategy.activate(
+                    targetID: targetID,
+                    inputSourceController: self.inputSourceController,
+                    delayNanoseconds: self.reactivationDelayNanoseconds
+                )
+                self.reactivationTask = nil
+                if didActivate {
+                    self.lastNonASCIIInputSourceID = targetID
+                    self.logger.info("transient english: \(reason, privacy: .public) reactivated non-ascii source \(targetID, privacy: .public)")
+                } else {
+                    self.logger.error("transient english: \(reason, privacy: .public) failed to reactivate \(targetID, privacy: .public)")
+                }
+            }
+            return true
+        }
+
+        if inputSourceController.selectInputSource(id: targetID) {
+            lastNonASCIIInputSourceID = targetID
+            return true
+        }
+        return false
     }
 
     private func clearShiftTapCandidate() {
