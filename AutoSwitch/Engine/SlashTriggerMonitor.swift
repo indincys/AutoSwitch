@@ -23,10 +23,14 @@ final class SlashTriggerMonitor {
     private let isEnabledProvider: () -> Bool
     private let inputSourceController: InputSourceControlling
     private let lineStartProbe: @MainActor () -> Bool?
+    private let reactivationDelayNanoseconds: UInt64
+    var onTemporaryOverrideChanged: ((_ isActive: Bool) -> Void)?
 
     private var didStart = false
     private var savedSourceID: String?
     private var inSlashMode = false
+    private var reactivationTask: Task<Void, Never>?
+    private var temporaryOverrideActive = false
     /// Best-effort line-start flag, used only when `lineStartProbe` returns nil.
     private var fallbackAtLineStart = true
 
@@ -38,11 +42,13 @@ final class SlashTriggerMonitor {
     init(
         isEnabledProvider: @escaping () -> Bool,
         inputSourceController: InputSourceControlling,
-        lineStartProbe: @escaping @MainActor () -> Bool? = { CaretContextProbe.atLineStart() }
+        lineStartProbe: @escaping @MainActor () -> Bool? = { CaretContextProbe.atLineStart() },
+        reactivationDelayNanoseconds: UInt64 = 80_000_000
     ) {
         self.isEnabledProvider = isEnabledProvider
         self.inputSourceController = inputSourceController
         self.lineStartProbe = lineStartProbe
+        self.reactivationDelayNanoseconds = reactivationDelayNanoseconds
     }
 
     func start() {
@@ -52,6 +58,9 @@ final class SlashTriggerMonitor {
     }
 
     func stop() {
+        reactivationTask?.cancel()
+        reactivationTask = nil
+        setTemporaryOverrideActive(false)
         inSlashMode = false
         savedSourceID = nil
         fallbackAtLineStart = true
@@ -117,10 +126,15 @@ final class SlashTriggerMonitor {
             inSlashMode = false
             savedSourceID = nil
         }
+        reactivationTask?.cancel()
+        reactivationTask = nil
+        setTemporaryOverrideActive(false)
     }
 
     private func enterSlashMode() {
         if inSlashMode { return }
+        reactivationTask?.cancel()
+        reactivationTask = nil
         inSlashMode = true
         savedSourceID = inputSourceController.currentInputSourceIDValue
         guard let asciiID = asciiFallbackID() else {
@@ -133,24 +147,60 @@ final class SlashTriggerMonitor {
             return
         }
         logger.info("slash trigger: → \(asciiID, privacy: .public) (saved=\(self.savedSourceID ?? "nil", privacy: .public))")
-        _ = inputSourceController.selectInputSource(id: asciiID)
+        setTemporaryOverrideActive(true)
+        if !inputSourceController.selectInputSource(id: asciiID) {
+            setTemporaryOverrideActive(false)
+        }
     }
 
     private func restoreIME() {
-        defer {
+        guard let id = savedSourceID else {
             inSlashMode = false
-            savedSourceID = nil
-        }
-        guard let id = savedSourceID, id != inputSourceController.currentInputSourceIDValue else {
+            setTemporaryOverrideActive(false)
             return
         }
-        logger.info("slash trigger: ↩ \(id, privacy: .public)")
-        _ = inputSourceController.selectInputSource(id: id)
+        inSlashMode = false
+        savedSourceID = nil
+        if InputSourceActivationStrategy.canReactivateInputMode(
+            targetID: id,
+            inputSourceController: inputSourceController
+        ) {
+            reactivateInputMethod(targetID: id)
+            return
+        }
+        if id != inputSourceController.currentInputSourceIDValue {
+            logger.info("slash trigger: ↩ \(id, privacy: .public)")
+            _ = inputSourceController.selectInputSource(id: id)
+        }
+        setTemporaryOverrideActive(false)
+    }
+
+    private func setTemporaryOverrideActive(_ isActive: Bool) {
+        guard temporaryOverrideActive != isActive else {
+            return
+        }
+        temporaryOverrideActive = isActive
+        onTemporaryOverrideChanged?(isActive)
     }
 
     private func asciiFallbackID() -> String? {
         inputSourceController.availableInputSources.first(where: {
             $0.kind == .ascii && $0.isEnabled && $0.isSelectCapable
         })?.id
+    }
+
+    private func reactivateInputMethod(targetID: String) {
+        logger.info("slash trigger: ↩ \(targetID, privacy: .public) via input-mode reactivation")
+        reactivationTask?.cancel()
+        reactivationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            _ = await InputSourceActivationStrategy.activate(
+                targetID: targetID,
+                inputSourceController: self.inputSourceController,
+                delayNanoseconds: self.reactivationDelayNanoseconds
+            )
+            self.reactivationTask = nil
+            self.setTemporaryOverrideActive(false)
+        }
     }
 }

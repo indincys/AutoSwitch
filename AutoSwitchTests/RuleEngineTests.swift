@@ -50,6 +50,55 @@ final class RuleEngineTests: XCTestCase {
         XCTAssertEqual(decision?.isPanelContext, true)
     }
 
+    func testTUIPromptPrefersTerminalChineseRuleOverGlobalDefault() {
+        let engine = RuleEngine()
+        let sources = [
+            InputSource(id: "english", localizedName: "ABC", category: "keyboard", languages: ["en"], kind: .ascii, isEnabled: true, isSelectCapable: true),
+            InputSource(id: "terminalChinese", localizedName: "Terminal IME", category: "inputmethod", languages: ["zh-Hans"], kind: .chinese, isEnabled: true, isSelectCapable: true),
+            InputSource(id: "globalChinese", localizedName: "Global IME", category: "inputmethod", languages: ["zh-Hans"], kind: .chinese, isEnabled: true, isSelectCapable: true)
+        ]
+        let config = Config(
+            globalDefaultInputSourceID: "globalChinese",
+            appRules: [
+                AppRule(bundleID: "com.apple.Terminal", displayName: "Terminal", inputSourceID: "terminalChinese", enabled: true, lastSeenPath: nil)
+            ]
+        )
+
+        let decision = engine.resolve(
+            bundleID: "com.apple.Terminal",
+            isPanelContext: false,
+            config: config,
+            availableInputSources: sources,
+            shellPromptDetected: true,
+            tuiPromptDetected: true
+        )
+
+        XCTAssertEqual(decision?.targetInputSourceID, "terminalChinese")
+        XCTAssertEqual(decision?.reason, "tui prompt detected")
+    }
+
+    func testTUIPromptFallsBackToGlobalChineseWhenAppRuleIsAscii() {
+        let engine = RuleEngine()
+        let config = Config(
+            globalDefaultInputSourceID: "chinese",
+            appRules: [
+                AppRule(bundleID: "com.apple.Terminal", displayName: "Terminal", inputSourceID: "english", enabled: true, lastSeenPath: nil)
+            ]
+        )
+
+        let decision = engine.resolve(
+            bundleID: "com.apple.Terminal",
+            isPanelContext: false,
+            config: config,
+            availableInputSources: sources,
+            shellPromptDetected: true,
+            tuiPromptDetected: true
+        )
+
+        XCTAssertEqual(decision?.targetInputSourceID, "chinese")
+        XCTAssertEqual(decision?.reason, "tui prompt detected")
+    }
+
     func testMissingRuleTargetFallsBackToGlobalDefault() {
         let engine = RuleEngine()
         let config = Config(

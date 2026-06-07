@@ -11,11 +11,14 @@ struct RuleEngine {
     ) -> SwitchDecision? {
         let sourceLookup = InputSourceLookup(availableInputSources)
 
-        // TUI prompt overrides shell prompt and app rules: when we see Claude
-        // Code / Codex's TUI input box, force Chinese regardless of what the
-        // app rule says.
+        // TUI prompt overrides shell/ascii mode, but still respects the
+        // terminal app's configured Chinese source when it has one.
         if tuiPromptDetected, config.shellPromptDetectionEnabled, !isPanelContext {
-            if let chinese = sourceLookup.chineseFallback(preferring: config.globalDefaultInputSourceID) {
+            let appRuleSourceID = bundleID.flatMap { activeAppRuleSourceID(bundleID: $0, config: config) }
+            if let chinese = sourceLookup.chineseFallback(preferring: [
+                appRuleSourceID,
+                config.globalDefaultInputSourceID
+            ]) {
                 return SwitchDecision(
                     targetInputSourceID: chinese.id,
                     reason: "tui prompt detected",
@@ -57,6 +60,10 @@ struct RuleEngine {
         }
 
         return fallbackDecision(bundleID: bundleID, isPanelContext: false, reason: "global default", config: config, sourceLookup: sourceLookup)
+    }
+
+    private func activeAppRuleSourceID(bundleID: String, config: Config) -> String? {
+        config.appRules.first { $0.bundleID == bundleID && $0.enabled }?.inputSourceID
     }
 
     private func fallbackDecision(
@@ -111,16 +118,20 @@ private struct InputSourceLookup {
         return candidateID
     }
 
-    /// First selectable Chinese source, preferring the user's configured global
-    /// default if it's Chinese (so we honor their preferred Pinyin/Wubi/etc.
-    /// over an arbitrary first match).
     func chineseFallback(preferring preferredID: String?) -> InputSource? {
-        if let preferredID,
-           let preferred = sourcesByID[preferredID],
-           preferred.kind == .chinese,
-           preferred.isEnabled,
-           preferred.isSelectCapable {
-            return preferred
+        chineseFallback(preferring: [preferredID])
+    }
+
+    /// First selectable Chinese source, preferring explicitly configured
+    /// Chinese candidates in order before falling back to any available one.
+    func chineseFallback(preferring preferredIDs: [String?]) -> InputSource? {
+        for preferredID in preferredIDs.compactMap({ $0 }) {
+            if let preferred = sourcesByID[preferredID],
+               preferred.kind == .chinese,
+               preferred.isEnabled,
+               preferred.isSelectCapable {
+                return preferred
+            }
         }
         return allSources.first { $0.kind == .chinese && $0.isEnabled && $0.isSelectCapable }
     }

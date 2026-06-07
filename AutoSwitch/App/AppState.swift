@@ -203,6 +203,13 @@ final class AppState: ObservableObject {
         lockScreenMonitor.start()
         spotlightPanelMonitor.start()
         focusedElementMonitor.start()
+        slashTriggerMonitor.onTemporaryOverrideChanged = { [weak self] isActive in
+            if isActive {
+                self?.scheduler.suspendAutomaticSwitching(reason: "slash trigger")
+            } else {
+                self?.scheduler.resumeAutomaticSwitching(reason: "slash trigger")
+            }
+        }
         slashTriggerMonitor.start()
         transientEnglishMonitor.start()
 

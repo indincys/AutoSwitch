@@ -197,3 +197,58 @@ final class InputSourceController: ObservableObject, InputSourceControlling {
         return false
     }
 }
+
+enum InputSourceActivationStrategy {
+    static let defaultReactivationDelayNanoseconds: UInt64 = 80_000_000
+
+    @MainActor
+    static func reactivationBridgeID(
+        for targetID: String,
+        inputSourceController: InputSourceControlling
+    ) -> String? {
+        guard let target = inputSourceController.inputSource(with: targetID),
+              target.kind == .chinese,
+              target.isEnabled,
+              target.isSelectCapable else {
+            return nil
+        }
+
+        return inputSourceController.availableInputSources.first {
+            $0.id != targetID
+                && $0.kind == .chinese
+                && $0.isEnabled
+                && $0.isSelectCapable
+        }?.id
+    }
+
+    @MainActor
+    static func canReactivateInputMode(
+        targetID: String,
+        inputSourceController: InputSourceControlling
+    ) -> Bool {
+        reactivationBridgeID(for: targetID, inputSourceController: inputSourceController) != nil
+    }
+
+    @MainActor
+    static func activate(
+        targetID: String,
+        inputSourceController: InputSourceControlling,
+        delayNanoseconds: UInt64 = defaultReactivationDelayNanoseconds
+    ) async -> Bool {
+        guard let bridgeID = reactivationBridgeID(
+            for: targetID,
+            inputSourceController: inputSourceController
+        ) else {
+            return inputSourceController.selectInputSource(id: targetID)
+        }
+
+        guard inputSourceController.selectInputSource(id: bridgeID) else {
+            return inputSourceController.selectInputSource(id: targetID)
+        }
+        if delayNanoseconds > 0 {
+            try? await Task.sleep(nanoseconds: delayNanoseconds)
+        }
+        guard !Task.isCancelled else { return false }
+        return inputSourceController.selectInputSource(id: targetID)
+    }
+}

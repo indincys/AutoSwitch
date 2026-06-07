@@ -42,6 +42,23 @@ final class SwitchSchedulerTests: XCTestCase {
     }
 
     @MainActor
+    func testSchedulerReactivatesChineseTargetEvenWhenAlreadySelected() async {
+        let controller = StubController()
+        controller.availableInputSources = [
+            InputSource(id: "zh.target", localizedName: "Target IME", category: "inputmethod", languages: ["zh-Hans"], kind: .chinese, isEnabled: true, isSelectCapable: true),
+            InputSource(id: "zh.bridge", localizedName: "Bridge IME", category: "inputmethod", languages: ["zh-Hans"], kind: .chinese, isEnabled: true, isSelectCapable: true),
+            InputSource(id: "abc", localizedName: "ABC", category: "keyboard", languages: ["en"], kind: .ascii, isEnabled: true, isSelectCapable: true)
+        ]
+        controller.currentInputSourceIDValue = "zh.target"
+        let scheduler = SwitchScheduler(inputSourceController: controller, activationDelayNanoseconds: 0)
+
+        scheduler.schedule(SwitchDecision(targetInputSourceID: "zh.target", reason: "tui prompt detected", sourceBundleID: "com.apple.Terminal", isPanelContext: false))
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
+        XCTAssertEqual(controller.selected, ["zh.bridge", "zh.target"])
+    }
+
+    @MainActor
     func testSchedulerCoalescesDuplicatePendingTarget() async {
         let controller = StubController()
         let scheduler = SwitchScheduler(inputSourceController: controller)
@@ -137,6 +154,95 @@ final class SlashAndTransientMonitorTests: XCTestCase {
         XCTAssertEqual(controller.selected, ["abc"])
 
         monitor.handleKey(keycode: 49, typed: " ")
+        XCTAssertEqual(controller.selected, ["abc", "wechat"])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testSlashRestoresChineseInputModeViaAlternateChineseSource() async {
+        let controller = StubController()
+        controller.availableInputSources = [
+            makeSource(id: "zh.target", kind: .chinese),
+            makeSource(id: "zh.bridge", kind: .chinese),
+            makeSource(id: "abc", kind: .ascii)
+        ]
+        controller.currentInputSourceIDValue = "zh.target"
+        let monitor = SlashTriggerMonitor(
+            isEnabledProvider: { true },
+            inputSourceController: controller,
+            lineStartProbe: { nil },
+            reactivationDelayNanoseconds: 0
+        )
+        monitor.start()
+
+        monitor.handleKey(keycode: 44, typed: "/")
+        monitor.handleKey(keycode: 49, typed: " ")
+        try? await Task.sleep(nanoseconds: 20_000_000)
+
+        XCTAssertEqual(controller.selected, [
+            "abc",
+            "zh.bridge",
+            "zh.target"
+        ])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testPendingChineseReactivationCancelsOnContextReset() async {
+        let controller = StubController()
+        controller.availableInputSources = [
+            makeSource(id: "zh.target", kind: .chinese),
+            makeSource(id: "zh.bridge", kind: .chinese),
+            makeSource(id: "abc", kind: .ascii)
+        ]
+        controller.currentInputSourceIDValue = "zh.target"
+        let monitor = SlashTriggerMonitor(
+            isEnabledProvider: { true },
+            inputSourceController: controller,
+            lineStartProbe: { nil },
+            reactivationDelayNanoseconds: 120_000_000
+        )
+        monitor.start()
+
+        monitor.handleKey(keycode: 44, typed: "/")
+        monitor.handleKey(keycode: 49, typed: " ")
+        monitor.noteContextReset()
+        try? await Task.sleep(nanoseconds: 180_000_000)
+
+        XCTAssertEqual(controller.selected, [
+            "abc",
+            "zh.bridge"
+        ])
+        monitor.stop()
+    }
+
+    @MainActor
+    func testSlashTemporaryOverrideSuppressesTUIChineseDecisionUntilTerminator() async {
+        let controller = chineseAndAsciiController()
+        let scheduler = SwitchScheduler(inputSourceController: controller, activationDelayNanoseconds: 0)
+        let monitor = SlashTriggerMonitor(
+            isEnabledProvider: { true },
+            inputSourceController: controller,
+            lineStartProbe: { nil },
+            reactivationDelayNanoseconds: 0
+        )
+        monitor.onTemporaryOverrideChanged = { isActive in
+            if isActive {
+                scheduler.suspendAutomaticSwitching(reason: "slash trigger")
+            } else {
+                scheduler.resumeAutomaticSwitching(reason: "slash trigger")
+            }
+        }
+        monitor.start()
+
+        monitor.handleKey(keycode: 44, typed: "/")
+        scheduler.schedule(SwitchDecision(targetInputSourceID: "wechat", reason: "tui prompt detected", sourceBundleID: "com.apple.Terminal", isPanelContext: false))
+        try? await Task.sleep(nanoseconds: 250_000_000)
+        XCTAssertEqual(controller.currentInputSourceIDValue, "abc")
+        XCTAssertEqual(controller.selected, ["abc"])
+
+        monitor.handleKey(keycode: 49, typed: " ")
+        XCTAssertEqual(controller.currentInputSourceIDValue, "wechat")
         XCTAssertEqual(controller.selected, ["abc", "wechat"])
         monitor.stop()
     }

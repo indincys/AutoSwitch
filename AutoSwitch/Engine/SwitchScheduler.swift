@@ -5,15 +5,48 @@ import os.log
 final class SwitchScheduler {
     private let logger = Logger(subsystem: "dev.autoswitch", category: "scheduler")
     private let inputSourceController: InputSourceControlling
+    private let activationDelayNanoseconds: UInt64
     private var currentTask: Task<Void, Never>?
     private var pendingDecision: SwitchDecision?
+    private var suspensionDepth = 0
 
-    init(inputSourceController: InputSourceControlling) {
+    init(
+        inputSourceController: InputSourceControlling,
+        activationDelayNanoseconds: UInt64 = InputSourceActivationStrategy.defaultReactivationDelayNanoseconds
+    ) {
         self.inputSourceController = inputSourceController
+        self.activationDelayNanoseconds = activationDelayNanoseconds
+    }
+
+    func suspendAutomaticSwitching(reason: String) {
+        suspensionDepth += 1
+        currentTask?.cancel()
+        currentTask = nil
+        pendingDecision = nil
+        logger.info("automatic switching suspended: \(reason, privacy: .public)")
+    }
+
+    func resumeAutomaticSwitching(reason: String) {
+        if suspensionDepth > 0 {
+            suspensionDepth -= 1
+        }
+        logger.info("automatic switching resumed: \(reason, privacy: .public)")
     }
 
     func schedule(_ decision: SwitchDecision) {
-        if inputSourceController.currentInputSourceIDValue == decision.targetInputSourceID {
+        guard suspensionDepth == 0 else {
+            logger.info(
+                "automatic switching suspended; ignored \(decision.targetInputSourceID, privacy: .public) because \(decision.reason, privacy: .public)"
+            )
+            return
+        }
+
+        let shouldReactivate = InputSourceActivationStrategy.canReactivateInputMode(
+            targetID: decision.targetInputSourceID,
+            inputSourceController: inputSourceController
+        )
+
+        if inputSourceController.currentInputSourceIDValue == decision.targetInputSourceID, !shouldReactivate {
             if pendingDecision?.targetInputSourceID == decision.targetInputSourceID {
                 logger.info("target already selected; keeping pending verification")
                 return
@@ -38,11 +71,11 @@ final class SwitchScheduler {
             self.logger.info("scheduled switch to \(decision.targetInputSourceID, privacy: .public) because \(decision.reason, privacy: .public)")
             try? await Task.sleep(nanoseconds: 150_000_000)
             guard !Task.isCancelled else { return }
-            self.apply(decision)
+            await self.apply(decision)
 
             try? await Task.sleep(nanoseconds: 350_000_000)
             guard !Task.isCancelled else { return }
-            self.verifyAndCorrect(decision)
+            await self.verifyAndCorrect(decision)
             self.clearPendingDecision(decision)
         }
     }
@@ -53,7 +86,23 @@ final class SwitchScheduler {
         pendingDecision = nil
     }
 
-    private func apply(_ decision: SwitchDecision) {
+    private func apply(_ decision: SwitchDecision) async {
+        if InputSourceActivationStrategy.canReactivateInputMode(
+            targetID: decision.targetInputSourceID,
+            inputSourceController: inputSourceController
+        ) {
+            if await InputSourceActivationStrategy.activate(
+                targetID: decision.targetInputSourceID,
+                inputSourceController: inputSourceController,
+                delayNanoseconds: activationDelayNanoseconds
+            ) {
+                logger.info("reactivated target \(decision.targetInputSourceID, privacy: .public)")
+            } else {
+                logger.error("failed to reactivate target \(decision.targetInputSourceID, privacy: .public)")
+            }
+            return
+        }
+
         guard inputSourceController.currentInputSourceIDValue != decision.targetInputSourceID else {
             logger.info("target already selected")
             return
@@ -66,13 +115,17 @@ final class SwitchScheduler {
         }
     }
 
-    private func verifyAndCorrect(_ decision: SwitchDecision) {
+    private func verifyAndCorrect(_ decision: SwitchDecision) async {
         guard inputSourceController.currentInputSourceIDValue != decision.targetInputSourceID else {
             logger.info("verification matched target")
             return
         }
 
         logger.info("verification mismatch, attempting one correction")
-        _ = inputSourceController.selectInputSource(id: decision.targetInputSourceID)
+        _ = await InputSourceActivationStrategy.activate(
+            targetID: decision.targetInputSourceID,
+            inputSourceController: inputSourceController,
+            delayNanoseconds: activationDelayNanoseconds
+        )
     }
 }
