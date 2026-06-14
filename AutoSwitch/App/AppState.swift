@@ -263,6 +263,9 @@ final class AppState: ObservableObject {
         window.isReleasedWhenClosed = false
         window.isOpaque = true
         window.backgroundColor = .windowBackgroundColor
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.styleMask.insert(.fullSizeContentView)
         window.hidesOnDeactivate = false
         window.collectionBehavior = [.managed]
         window.isRestorable = false
