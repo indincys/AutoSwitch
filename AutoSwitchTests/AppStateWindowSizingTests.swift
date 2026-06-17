@@ -98,4 +98,26 @@ final class AppStateWindowSizingTests: XCTestCase {
         XCTAssertEqual(AppState.settingsWindowDefaultContentSize.width, AppState.settingsWindowDefaultFrameSize.width)
         XCTAssertLessThan(AppState.settingsWindowDefaultContentSize.height, AppState.settingsWindowDefaultFrameSize.height)
     }
+
+    @MainActor
+    func testShowSettingsWindowConfiguresModernTitlebarStyle() {
+        let appState = AppState.shared
+        NSApp.windows.forEach { window in
+            if window.title == "AutoSwitch 设置" {
+                window.close()
+            }
+        }
+
+        appState.showSettingsWindow()
+
+        let settingsWindow = NSApp.windows.first { $0.title == "AutoSwitch 设置" }
+        XCTAssertNotNil(settingsWindow)
+        guard let settingsWindow else { return }
+
+        XCTAssertTrue(settingsWindow.styleMask.contains(.fullSizeContentView))
+        XCTAssertTrue(settingsWindow.titlebarAppearsTransparent)
+        XCTAssertEqual(settingsWindow.titleVisibility, .hidden)
+
+        settingsWindow.close()
+    }
 }
