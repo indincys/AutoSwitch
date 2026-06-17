@@ -18,6 +18,11 @@ private enum LG {
     static let hairline = Color.primary.opacity(0.08)
 }
 
+enum SystemTextCursorCommands {
+    static let disable = "sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO"
+    static let restore = "sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool YES"
+}
+
 // MARK: - General tab
 
 struct GeneralTab: View {
@@ -473,8 +478,8 @@ private struct SystemTextCursorRow: View {
     @State private var copiedDisable = false
     @State private var copiedRestore = false
 
-    private let disableCmd = "sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO"
-    private let restoreCmd = "sudo defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool YES"
+    private let disableCmd = SystemTextCursorCommands.disable
+    private let restoreCmd = SystemTextCursorCommands.restore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
